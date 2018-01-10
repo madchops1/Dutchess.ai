@@ -2,6 +2,10 @@
 
 A suite of nodejs black boxes for machine learning and automated trading. All named after cats.
 
+## Get Started
+
+    npm install
+
 ## Secrets
 
 ### secrets.json
@@ -47,3 +51,4 @@ for more information.
 
     node princess.js
     node tiger.js
+    node misty.js

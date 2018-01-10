@@ -93,7 +93,7 @@ var dataSchema        = JSON.stringify({
 // @ToDo...
 
 // Mailchimp
-var mailchimpLive     = false;
+var mailchimpLive     = true;
 var mailchimpApiKey   = secrets.MailchimpApiKey;
 var listId            = secrets.MailchimpListId;
 var mailchimp         = new Mailchimp(mailchimpApiKey);
@@ -103,7 +103,8 @@ async.series([
 
   // Step 1 Authenticate google sheets
   function setAuth(step) {
-    console.log('Step 1: Authenticated Google Sheets');
+    console.log('Step 1.1: Log, TODO...');
+    console.log('Step 1.2: Authenticated Google Sheets');
     doc.useServiceAccountAuth(creds, step);
   },
 
@@ -394,7 +395,7 @@ async.series([
             sleep.sleep(30);
             waitFormMlModelEndpoint();
           } else {
-            sleep.sleep(30); // sleep an xtra 30 sec to fix an aws bug
+            sleep.sleep(60); // sleep an xtra 60 sec to fix an aws bug
             // get next trading day...
             if(moment().day() === 5) {
               predDate = moment().add(3, 'days');
@@ -568,10 +569,15 @@ or ** unsubscribe from this list (*|UNSUB|*)`;
 
   },
 
-  // Step 18 Cleanup
-  function cleanUp(step) {
-    console.log('Step 18: Cleanup, TODO...');
+  // Step XX Log completion
+  function logCompletion(step) {
+    console.log('Step 18: Log, TODO...');
+    step();
+  },
 
+  // Step XX Cleanup
+  function cleanUp(step) {
+    console.log('Step 19: Cleanup, TODO...');
     // delete the data.csv from s3 from day before yesterday.
     // basically always keep a backup from prev day
     // delete realtime endpoint
