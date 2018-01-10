@@ -1,15 +1,34 @@
-# AWS SDK for Node.js Sample Project
+# Dutchess.ai
 
-A simple Node.js application illustrating usage of the AWS SDK for Node.js.
+A suite of nodejs black boxes for machine learning and automated trading. All named after cats.
 
-## Requirements
+## Secrets
 
-The only requirement of this application is the Node Package Manager. All other
-dependencies (including the AWS SDK for Node.js) can be installed with:
+### secrets.json
+{
+    "QuandlApiKey": "XXXXXXXXXXX",
+    "GoogleSheetId": "XXXXXXXXXXXXXX",
+    "BucketName": "XXXXXXXXXXX",
+    "MailchimpApiKey": "XXXXXXXXXXX",
+    "MailchimpListId": "XXXXXXXXXXX"
+}
 
-    npm install
+### sheetsClientSecret.json
+{
+    "type": "service_account",
+    "project_id": "XXXXXXXXXXX",
+    "private_key_id": "XXXXXXXXXXX",
+    "private_key": "XXXXXXXXXXX",
+    "client_email": "XXXXXXXXXXX",
+    "client_id": "XXXXXXXXXXX",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://accounts.google.com/o/oauth2/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "XXXXXXXXXXX"
+}
+  
 
-## Basic Configuration
+## AWS Configuration
 
 You need to set up your AWS security credentials before the sample code is able
 to connect to AWS. You can do this by creating a file named "credentials" at ~/.aws/ 
@@ -24,19 +43,7 @@ It's also possible to configure your credentials via a configuration file or
 directly in source. See the AWS SDK for Node.js [Developer Guide](http://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-configuring.html)
 for more information.
 
-## Running the S3 sample
+## Running the black boxes
 
-This sample application connects to Amazon's [Simple Storage Service (S3)](http://aws.amazon.com/s3),
-creates a bucket, and uploads a file to that bucket. The script will automatically
-create the file to upload. All you need to do is run it:
-
-    node sample.js
-
-The S3 documentation has a good overview of the [restrictions for bucket names](http://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html)
-for when you start making your own buckets.
-
-## License
-
-This sample application is distributed under the
-[Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0).
-
+    node princess.js
+    node tiger.js
