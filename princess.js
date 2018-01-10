@@ -93,7 +93,7 @@ var dataSchema        = JSON.stringify({
 // @ToDo...
 
 // Mailchimp
-var mailchimpLive     = true;
+var mailchimpLive     = false;
 var mailchimpApiKey   = secrets.MailchimpApiKey;
 var listId            = secrets.MailchimpListId;
 var mailchimp         = new Mailchimp(mailchimpApiKey);
