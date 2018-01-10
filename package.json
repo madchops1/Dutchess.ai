@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "license": "UNLICENSED",
+  "repository": "https://github.com/madchops1/Dutchess.ai",
+  "dependencies": {
+    "@oanda/v20": "^3.0.18-16",
+    "async": "^2.6.0",
+    "aws-sdk": ">= 2.0.9",
+    "axios": "^0.17.1",
+    "clone": "^2.1.1",
+    "file-system": "^2.2.2",
+    "google-spreadsheet": "^2.0.3",
+    "json2csv": "^3.11.5",
+    "mailchimp-api-v3": "^1.8.0",
+    "moment": "^2.20.1",
+    "node-oanda": "^1.1.20",
+    "node-uuid": ">= 1.4.1",
+    "scraperjs": "^1.2.0",
+    "sleep": "^5.1.1"
+  }
+}
