@@ -97,11 +97,7 @@ var dataSchema        = JSON.stringify({
 
 // Mailchimp
 var mailchimpLive;
-if(args[0] === 'test') {
-  mailchimpLive = false;
-} else {
-  mailchimpLive = true;
-}
+if(args[0] === 'test') { mailchimpLive = false; } else { mailchimpLive = true; }
 var mailchimpApiKey   = secrets.MailchimpApiKey;
 var listId            = secrets.MailchimpListId;
 var mailchimp         = new Mailchimp(mailchimpApiKey);
