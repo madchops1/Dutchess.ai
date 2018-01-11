@@ -52,3 +52,13 @@ for more information.
     node princess.js
     node tiger.js
     node misty.js
+
+## AWS Resources
+https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/MachineLearning.html#predict-property
+
+## Mailchimp Resources
+https://www.npmjs.com/package/mailchimp-api-v3
+http://developer.mailchimp.com/documentation/mailchimp/reference/campaigns/#action-post_campaigns_campaign_id_actions_send
+
+## TDA Resources
+http://apiforums.tdameritrade.com/tda-board/ubbthreads.php

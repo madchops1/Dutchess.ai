@@ -465,6 +465,9 @@ async.series([
             title: 'Dutchess.ai - QM Prediction for ' + predDate.format("MM/DD/YYYY"),
             from_name: 'Dutchess.ai',
             reply_to: 'karl.steltenpohl@gmail.com'
+          },
+          tracking: {
+            opens: true
           }
         };
         mailchimp.post({path: '/campaigns', body: body})
