@@ -23,6 +23,9 @@ var GoogleSpreadsheet = require('google-spreadsheet');
 var Mailchimp         = require('mailchimp-api-v3');
 var secrets           = require('./secrets.json');
 
+var args              = process.argv.slice(2);
+console.log('ARGS', args);
+
 // AWS dependencies
 var AWS               = require('aws-sdk');
 var uuid              = require('node-uuid');
@@ -93,7 +96,12 @@ var dataSchema        = JSON.stringify({
 // @ToDo...
 
 // Mailchimp
-var mailchimpLive     = true;
+var mailchimpLive;
+if(args[0] === 'test') {
+  mailchimpLive = false;
+} else {
+  mailchimpLive = true;
+}
 var mailchimpApiKey   = secrets.MailchimpApiKey;
 var listId            = secrets.MailchimpListId;
 var mailchimp         = new Mailchimp(mailchimpApiKey);
