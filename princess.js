@@ -24,7 +24,6 @@ var Mailchimp         = require('mailchimp-api-v3');
 var secrets           = require('./secrets.json');
 
 var args              = process.argv.slice(2);
-console.log('ARGS', args);
 
 // AWS dependencies
 var AWS               = require('aws-sdk');
@@ -51,6 +50,8 @@ var sheet;
 var latestRowDate;
 var openPrice;
 var lastPrice;
+var lowPrice;
+var highPrice;
 var midPoint;
 var missingData;
 var jsonData;
@@ -240,11 +241,17 @@ async.series([
         delete(jsonData[k].del);
         openPrice = jsonData[k].open;
         lastPrice = jsonData[k].last;
+        lowPrice  = jsonData[k].low;
+        highPrice = jsonData[k].high;
       }
       
       var s; // larger number
       var t; // smaller number
 
+      s = highPrice;
+      t = lowPrice;
+
+      /*
       if(openPrice < lastPrice) {
         s = lastPrice;
         t = openPrice;
@@ -252,10 +259,11 @@ async.series([
         s = openPrice;
         t = lastPrice;
       }
+      */
 
       midPoint = ((s-t)/2) + parseFloat(t);
 
-      console.log('Step 8: Get All Rows Successfull, open: ' + openPrice + ', last: ' + lastPrice + ', midPoint: ' + midPoint + '');
+      console.log('Step 8: Get All Rows Successfull, high: ' + highPrice + ', low: ' + lowPrice + ', midPoint: ' + midPoint + '');
       step();
     });
   },
@@ -347,7 +355,7 @@ async.series([
     mL.createMLModel(params, function(err, data) {
       if (err) { console.log(err, err.stack); }
       else {
-        console.log('Step 13: Create Model Successfull');
+        console.log('Step 13: Create Machine Learning Model Successfull');
         step();
       } 
     });
@@ -363,18 +371,18 @@ async.series([
         if (err) { console.log(err, err.stack); } 
         else {
           if(data.Status !== 'COMPLETED') {
-            console.log('Step 14: Model is ' + data.Status + ', waiting 30 sec...');
+            console.log('Step 14: Machine Learning Model is ' + data.Status + ', waiting 30 sec...');
             sleep.sleep(30);
             waitForMlModel();
           } else {
-            console.log('Step 14: Model Status: COMPLETED');
+            console.log('Step 14: Machine Learning Model Status: COMPLETED');
             var params = { MLModelId: modelId };
             mL.createRealtimeEndpoint(params, function(err, data) {
               if (err) { console.log(err, err.stack); } 
               else {
                 //console.log(data);   
                 predictionEndpoint = data.RealtimeEndpointInfo.EndpointUrl;
-                console.log('Step 14: Realtime Endpoint Created Successfully');
+                console.log('Step 14: Realtime Prediction Endpoint Created Successfully');
                 step();   
               }
             });
