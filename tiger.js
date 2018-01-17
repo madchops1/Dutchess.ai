@@ -411,22 +411,8 @@ async.series([
         //step();
     }
 
-
 ], function(err){
   if( err ) {
     console.log('Error: '+err);
   }
 });
-
-/*
-
-*/
-
-// - Get missing hist trends data 
-// - Get missing hist price data 
-// - Build ML Datasource
-// - Build ML Model
-// - Do evaluation
-// - Make Prediction
-// - Send Email
-// - Cleanup
