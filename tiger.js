@@ -76,7 +76,7 @@ var dataSchema        = JSON.stringify({
 });
 
 // Settings
-var days = 100;
+var days = 60;
 
 // - get the sheet
 async.series([
@@ -141,15 +141,18 @@ async.series([
         var functions = [];
         for(var k in missingData) {
             var fun = function(ss) {
-                sleep.sleep(5);
+                //sleep.sleep(5);
                 var date = moment.unix(missingData[k].time).format("YYYY-MM-DD");
                 coinbase.getSpotPrice({'currencyPair': 'BTC-USD', 'date': date}, function(err, obj) {
+                    
+                    //console.log(dots+'\r');
+                    process.stdout.write(dots+'\r');
+                    dots += '.';
+                    
                     if(err) { 
-                        console.log(err); 
                         missingData[k].price = false;
                         missingData[k].date = false;
                     } else {
-                        //console.log(date, missingData[k].value, obj.data.amount);
                         missingData[k].price = obj.data.amount;
                         missingData[k].date = date;
                     }
@@ -160,6 +163,7 @@ async.series([
             functions.push(fun);
         }
         k = 0;
+        dots = '.';
         async.series(functions, function(err) { if(err) { console.log(err); } console.log('Step 5: Get Price Data Successful'); step(); });
     },
 
@@ -169,10 +173,9 @@ async.series([
         var data        = missingData;
         var lastPrice   = 0;
         var k = 0;
-        while(k<data.length) {
+        while(k < data.length) {
             var date = '---';
             var change;
-            //console.log('newRows[k].date',data[k].date);
 
             if(data[k].date) {
                 date = data[k].date.split('-');
@@ -380,7 +383,7 @@ async.series([
                         };
                         
                         console.log('params', params);
-                        
+
                         mL.predict(params, function(err, data) {
                             if (err) { console.log(err, err.stack); }
                             else {
