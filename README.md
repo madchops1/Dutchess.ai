@@ -10,11 +10,15 @@ A suite of nodejs black boxes for machine learning and automated trading. All na
 
 ### secrets.json
 {
-    "QuandlApiKey": "XXXXXXXXXXX",
-    "GoogleSheetId": "XXXXXXXXXXXXXX",
+    "GoogleSheetId": "XXXXXXXXXXX",
     "BucketName": "XXXXXXXXXXX",
-    "MailchimpApiKey": "XXXXXXXXXXX",
-    "MailchimpListId": "XXXXXXXXXXX"
+    "TigerBucketName": "XXXXXXXXXXX",
+    "TigerSheetId": "XXXXXXXXXXXXXXXXXXXXXX",
+    "QuandlApiKey": "XXXXXXXXXXX",
+    "MailchimpApiKey": "XXXXXXXXXXX-us7",
+    "MailchimpListId": "XXXXXXXXXXX",
+    "CoinbaseApiKey": "XXXXXXXXXXX",
+    "CoinbaseApiSecret": "XXXXXXXXXXX"
 }
 
 ### sheetsClientSecret.json
@@ -30,7 +34,6 @@ A suite of nodejs black boxes for machine learning and automated trading. All na
     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
     "client_x509_cert_url": "XXXXXXXXXXX"
 }
-  
 
 ## AWS Configuration
 
@@ -49,9 +52,8 @@ for more information.
 
 ## Running the black boxes
 
-    node princess.js
-    node tiger.js
-    node misty.js
+    node princess.js  AI OIL FUTURES STRATEGY + Email
+    node tiger.js     AI BTC TRADER STRATEGY
 
 ## AWS Resources
 https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/MachineLearning.html#predict-property

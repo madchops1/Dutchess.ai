@@ -239,10 +239,11 @@ async.series([
         delete(jsonData[k]._links);
         delete(jsonData[k].save);
         delete(jsonData[k].del);
-        openPrice = jsonData[k].open;
-        lastPrice = jsonData[k].last;
-        lowPrice  = jsonData[k].low;
-        highPrice = jsonData[k].high;
+        openPrice       = jsonData[k].open;
+        lastPrice       = jsonData[k].last;
+        lowPrice        = jsonData[k].low;
+        highPrice       = jsonData[k].high;
+        latestRowDate   = new moment(rows[k].date); // update latest row date to the latest row with updated data
       }
       
       var s; // larger number
@@ -263,7 +264,7 @@ async.series([
 
       midPoint = ((s-t)/2) + parseFloat(t);
 
-      console.log('Step 8: Get All Rows Successfull, high: ' + highPrice + ', low: ' + lowPrice + ', midPoint: ' + midPoint + '');
+      console.log('Step 8: Get All Rows Successfull, ' + latestRowDate.format("MM/DD/YYYY") + ', high: ' + highPrice + ', low: ' + lowPrice + ', midPoint: ' + midPoint + '');
       step();
     });
   },
@@ -409,11 +410,16 @@ async.series([
           } else {
             sleep.sleep(60); // sleep an xtra 60 sec to fix an aws bug
             // get next trading day...
-            if(moment().day() === 5) {
-              predDate = moment().add(3, 'days');
+
+            console.log('MMMM', latestRowDate.format("MM/DD/YYYY"));
+
+            if(latestRowDate.day() === 5) {
+              predDate = latestRowDate.add(3, 'days');
             } else {
-              predDate = moment().add(1, 'days');
+              predDate = latestRowDate.add(1, 'days');
             }
+
+            console.log('NNNN', latestRowDate.format("MM/DD/YYYY"));
 
             // get the prediction
             var params = {
@@ -495,14 +501,20 @@ async.series([
       // put campaign content
       function putCampaignContent(mS) {
         var plainText = `
-Dutchess.ai - Princess Strategy
+Dutchess.ai - QM/CL Strategy
 Predictions for ` + predDate.format("MM/DD/YYYY") + `:
 ----------------------------------
 
 ` + contract + ` Binary Price Change Direction Prediction: 
 ` + predictionDirection + `
 
-Mid Pivot Point:
+Latest Quote ` + latestRowDate.format("MM/DD/YYYY") + `:
+Open: ` + openPrice + `  
+High: ` + highPrice + `  
+Low: ` + lowPrice + `  
+Last: ` + lastPrice + `  
+
+Mid Pivot Point for ` + predDate.format("MM/DD/YYYY") + `:
 $` + midPoint+ `
 
 Suggestion:
