@@ -1,7 +1,7 @@
 /*
 DUTCHESS.AI - "TIGER STRATEGY"
 - Black Box
-- Runs Daily @ ???
+- Runs Daily @ 11:30pm
 - AWS ML training of Bitcoin's historical price and Google Trends correlation
 - //Cross reference mid pivor for suggestion
 - Twitter Emotion for the day... vibe api whats the vibe
@@ -517,8 +517,6 @@ async.series([
         waitFormMlModelEndpoint();
     },
 
-    // do ml for regression model
-
     // Step 15 Trading
     function trade(step) {
         console.log('Step 15: Trading, TODO...');
@@ -548,7 +546,7 @@ async.series([
             };
             mailchimp.post({path: '/campaigns', body: body})
               .then(function(result) {
-                console.log('Step 17.1: Create Campaign Successful');
+                console.log('Step 16.1: Create Campaign Successful');
                 campaign = result;
                 mS();
               })
@@ -604,7 +602,7 @@ or ** unsubscribe from this list (*|UNSUB|*)`;
             mailchimp.put({path: '/campaigns/' + campaign.id + '/content', body: body })
               .then(function(result) {
                 //console.log('CONTENT',result);
-                console.log('Step 17.2: Put Campaign Content Successful');
+                console.log('Step 16.2: Put Campaign Content Successful');
                 mS();
               })
               .catch(function(err){
@@ -619,7 +617,7 @@ or ** unsubscribe from this list (*|UNSUB|*)`;
             };
             mailchimp.post({path:'/campaigns/' + campaign.id + '/actions/test', body: body})
               .then(function(result) {
-                console.log('Step 17.3: Send Test Email Successful');
+                console.log('Step 16.3: Send Test Email Successful');
                 mS();
               })
               .catch(function(err) {
@@ -631,7 +629,7 @@ or ** unsubscribe from this list (*|UNSUB|*)`;
             if(mailchimpLive == true) {
               mailchimp.post({path:'/campaigns/' + campaign.id + '/actions/send'})
                 .then(function(result) {
-                  console.log('Step 17.4: Send Live Email Successful');
+                  console.log('Step 16.4: Send Live Email Successful');
                   step();
                   //mS();
                 })
@@ -639,7 +637,7 @@ or ** unsubscribe from this list (*|UNSUB|*)`;
                   console.log(err);
                 });
             } else {
-              console.log('Step 17.4: Live Email Not Sent');
+              console.log('Step 16.4: Live Email Not Sent');
               step();
             }  
           }
