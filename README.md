@@ -52,8 +52,11 @@ for more information.
 
 ## Running the black boxes
 
-    node princess.js  AI OIL FUTURES STRATEGY + Email
-    node tiger.js     AI BTC TRADER STRATEGY
+    node princess.js    AI, ML, OIL
+    node tiger.js       AI, ML, BTC
+    node tiger-sage.js  AI, NN, BTC, TODO...
+    node fluffy-sage.js AI, NN, ETH, TODO...
+
 
 ## AWS Resources
 https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/MachineLearning.html#predict-property

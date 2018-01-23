@@ -1,14 +1,14 @@
 /*
 DUTCHESS.AI - "PRINCESS STRATEGY"
 - Black Box
-- Runs daily @ 8pm 
+- Runs daily @ 11:30pm 
 - QM futures historical analysis (data from QUANDL)
 - Get current QM contract from CME
-- Google Sheets Datastore
+- Update Google Sheets Datastore
 - Prediction of tomorrows change direction using AWS Machine Learning 
+- Cross reference with mid pivot for suggestion
 - Mailchimp sends email
-- Automate trade with TD Ameritrade api
-- Place short or long order if direction will cross the avg from previous day.
+- TODO... Automate trade with TD Ameritrade api, Place short or long order if direction will cross the avg from previous day.
 */
 
 // Dependencies
@@ -22,7 +22,6 @@ var scraperjs         = require('scraperjs');
 var GoogleSpreadsheet = require('google-spreadsheet');
 var Mailchimp         = require('mailchimp-api-v3');
 var secrets           = require('./secrets.json');
-
 var args              = process.argv.slice(2);
 
 // AWS dependencies
@@ -108,8 +107,7 @@ async.series([
 
   // Step 1 Authenticate google sheets
   function setAuth(step) {
-    console.log('Step 1.1: Log, TODO...');
-    console.log('Step 1.2: Authenticated Google Sheets');
+    console.log('Step 1: Authenticated Google Sheets');
     doc.useServiceAccountAuth(creds, step);
   },
 
@@ -132,34 +130,52 @@ async.series([
     });
   },
 
-  // Step 4 get contract + missing historical data 
-  function getMissingData(step) {
-    // get contract
-    scraperjs.StaticScraper.create('http://www.cmegroup.com/trading/energy/crude-oil/emini-crude-oil_product_calendar_futures.html')
-    .scrape(function($) {
-        return $("#calendarFuturesProductTable1 > tbody > tr:nth-child(1) > td:nth-child(2)").map(function() {
-            return $(this).text();
-        }).get();
-    })
-    .then(function(text) {
-      var htmlText = text[0];
-      part1 = htmlText.substring(0,3);
-      part2 = htmlText.substring(3);
-      contract =  part1 + '20' + part2;
-      console.log('Step 4.1: Get Contract Successful,', contract);
-      // get missing data 
-      axios.get('https://www.quandl.com/api/v3/datasets/CME/' + contract + '.json?api_key=' + quandlApiKey + '&start_date='+latestRowDate.add(1,'days').format("YYYY-MM-DD"))
-        .then(function (response) {
-          missingData = response.data;
-          console.log('Step 4.2: Get Missing Historical Data Successful');
-          step();
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    });
+  // Step 4.1 Get contract
+  function getContract(step) {
+    let i = 1;
+    function findContract() {
+        scraperjs.StaticScraper.create('http://www.cmegroup.com/trading/energy/crude-oil/emini-crude-oil_product_calendar_futures.html')
+            .scrape(function($) {
+                return $("#calendarFuturesProductTable1 > tbody > tr:nth-child(" + i + ")").map(function() {
+                    return $(this).text();
+                }).get();
+            })
+            .then(function(text) {
+                var text1;
+                var text1Array;
+                text1 = text[0].replace(/(\r\n|\n|\r)/gm,"");
+                text1Array = text1.split("\t");
+                text1Array = text1Array.filter(function(n){ return (n != '' && n != '--') }); 
+                if(moment().isBefore(moment(text1Array[3],'DD MMM YYYY'))) {
+                    part1 = text1Array[1].substring(0,3);
+                    part2 = text1Array[1].substring(3);
+                    contract =  part1 + '20' + part2;
+                    console.log('Step 4.1: Get Contract Successful,', contract);
+                    step();
+                } else {
+                    ++i;
+                    findContract();
+                }
+            });
+    }
+    findContract();
   },
 
+  // Step 4.2 missing historical data 
+  function getMissingData(step) {
+    axios.get('https://www.quandl.com/api/v3/datasets/CME/' + contract + '.json?api_key=' + quandlApiKey + '&start_date='+moment(latestRowDate).add(1,'days').format("YYYY-MM-DD"))
+        .then(function (response) {
+            missingData = response.data;
+            console.log('Step 4.2: Get Missing Historical Data Successful');
+            //console.log('LLLL',latestRowDate.format("MM/DD/YYYY"));
+
+            step();
+        })
+        .catch(function (error) {
+            console.log(error);
+        });
+  },
+  
   // Step 5 add the missing data to the sheet
   function addMissingDataToSheet(step) {
     var functions   = [];
@@ -411,15 +427,15 @@ async.series([
             sleep.sleep(60); // sleep an xtra 60 sec to fix an aws bug
             // get next trading day...
 
-            console.log('MMMM', latestRowDate.format("MM/DD/YYYY"));
-
+            //console.log('MMMM', latestRowDate.format("MM/DD/YYYY"));
+              //predDate = latestRowDate;
             if(latestRowDate.day() === 5) {
-              predDate = latestRowDate.add(3, 'days');
+              predDate = moment(latestRowDate).add(3, 'days');
             } else {
-              predDate = latestRowDate.add(1, 'days');
+              predDate = moment(latestRowDate).add(1, 'days');
             }
 
-            console.log('NNNN', latestRowDate.format("MM/DD/YYYY"));
+            //console.log('NNNN', latestRowDate.format("MM/DD/YYYY"));
 
             // get the prediction
             var params = {
@@ -458,6 +474,7 @@ async.series([
   },
 
   // Step 16 Trading
+  // TODO...
   // get current price
   // get current bid/ask
   // logic for trade
@@ -503,10 +520,16 @@ async.series([
         var plainText = `
 Dutchess.ai - QM/CL Strategy
 Predictions for ` + predDate.format("MM/DD/YYYY") + `:
-----------------------------------
+==================================
 
-` + contract + ` Binary Price Change Direction Prediction: 
+` + contract + ` price change direction prediction for ` + predDate.format("MM/DD/YYYY") + `: 
 ` + predictionDirection + `
+
+Order suggestion based on prediction + cross reference of mid pivot point for ` + predDate.format("MM/DD/YYYY") + `:
+` + predictionPosition + `
+
+Mid pivot point for ` + predDate.format("MM/DD/YYYY") + `:
+` + midPoint+ `
 
 Latest Quote ` + latestRowDate.format("MM/DD/YYYY") + `:
 Open: ` + openPrice + `  
@@ -514,23 +537,18 @@ High: ` + highPrice + `
 Low: ` + lowPrice + `  
 Last: ` + lastPrice + `  
 
-Mid Pivot Point for ` + predDate.format("MM/DD/YYYY") + `:
-$` + midPoint+ `
-
-Suggestion:
-` + predictionPosition + `
-
-
 What do these numbers mean?
-----------------------------------
+The price change direction prediction is upwards indicating the last price will be higher than the opening price, and downwards if it will be lower.
 
-The binary Price Change Direction is upwards if the price change will be higher at end of day and downwards if it will be lower that the last price from the previous day.
-
-Learn more at https://dutchess.ai
+How are these numbers generated?
+This is a black box program that incorporates the following:
+- QM futures historical price data 2014-Present
+- Prediction of tomorrows change direction using AWS Machine Learning 
+- If the prediction is in the direction of the mid pivot point then a long or short suggestion is output.
 
 ==================================
 
-All investments involve risks, including the loss of principal invested. Past performance of a security does not guarantee future results or success. Dutchess.ai, and Karl Steltenpohl are not liable for any losses. 
+ALL INVESTMENTS INVOLVE RISKS, INCLUDING THE LOSS OF PRINCIPAL INVESTED. PAST PERFORMANCE OF A SECURITY DOES NOT GUARANTEE FUTURE RESULTS OR SUCCESS. DUTCHESS.AI AND KARL STELTENPOHL ARE NOT LIABLE FOR LOSSES OF ANY KIND. 
 
 Copyright © *|CURRENT_YEAR|* *|LIST:COMPANY|*, All rights reserved.
 *|IFNOT:ARCHIVE_PAGE|* *|LIST:DESCRIPTION|*
