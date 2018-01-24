@@ -478,14 +478,14 @@ async.series([
                             }
                         };
                         
-                        console.log('params', params);
+                        //console.log('params', params);
 
                         // predict tomorrow 
                         mL.predict(params, function(err, data) {
                             if (err) { console.log(err, err.stack); }
                             else {
 
-                                console.log(data);
+                                //console.log(data);
                                 console.log('Step 14: Predict Successful');
                                 prediction = data.Prediction.predictedLabel;
                                 predictionDirection = (prediction == 1 ? 'Upwards' : 'Downwards');
