@@ -54,9 +54,6 @@ for more information.
 
     node princess.js    AI, ML, OIL
     node tiger.js       AI, ML, BTC
-    node tiger-sage.js  AI, NN, BTC, TODO...
-    node fluffy-sage.js AI, NN, ETH, TODO...
-
 
 ## AWS Resources
 https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/MachineLearning.html#predict-property
