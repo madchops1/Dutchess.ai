@@ -30,7 +30,7 @@ var AWS               = require('aws-sdk');
 var uuid              = require('node-uuid');
 
 const sms             = require('./lib/sms.js');
-const notification    = 'sms';
+//const notification    = 'sms';
 
 // Quandl
 var quandlApiKey      = secrets.QuandlApiKey;
@@ -488,47 +488,52 @@ async.series([
     step();
   },
 
-  // Step 17 create mailchimp campaign, content, test, and send 
-  function email(step) {    
+  // Step 17 notify sms and create mailchimp campaign, content, test, and send 
+  function notify(step) {    
 
-    if(notification == 'sms') {
-        sms.send('+16302175813', 'Dutchess.ai QM/CL prediction: ' + contract + ' will move ' + predictionDirection + ' from $' + lastPrice + ', take ' + predictionPosition + ' for ' + predDate.format("MM/DD/YYYY")).then(function(){
-            step();
-        });
-    } else {
+    //if(notification == 'sms') {
+        
+    //} else {
 
         async.series([
-        // create campaign
-        function createCampaign(mS) {
-            var body = {
-            type: "plaintext",
-            recipients: {
-                list_id: listId
+            // sms
+            function sendSms(mS) {
+                sms.send('+16302175813', 'Dutchess.ai QM/CL prediction: ' + contract + ' will move ' + predictionDirection + ' from $' + lastPrice + ', take ' + predictionPosition + ' for ' + predDate.format("MM/DD/YYYY")).then(function(){
+                    mS();
+                });
             },
-            settings: {
-                subject_line: 'Dutchess.ai QM/CL Prediction for ' + predDate.format("MM/DD/YYYY"),
-                preview_text: 'Dutchess.ai predicts ' + contract + ' will move ' + predictionDirection + ' from $' + lastPrice + ', take ' + predictionPosition + ' ' + predDate.format("MM/DD/YYYY"),
-                title: 'Dutchess.ai - QM Prediction for ' + predDate.format("MM/DD/YYYY"),
-                from_name: 'Dutchess.ai',
-                reply_to: 'karl.steltenpohl@gmail.com'
+
+            // create campaign
+            function createCampaign(mS) {
+                var body = {
+                type: "plaintext",
+                recipients: {
+                    list_id: listId
+                },
+                settings: {
+                    subject_line: 'Dutchess.ai QM/CL Prediction for ' + predDate.format("MM/DD/YYYY"),
+                    preview_text: 'Dutchess.ai predicts ' + contract + ' will move ' + predictionDirection + ' from $' + lastPrice + ', take ' + predictionPosition + ' ' + predDate.format("MM/DD/YYYY"),
+                    title: 'Dutchess.ai - QM Prediction for ' + predDate.format("MM/DD/YYYY"),
+                    from_name: 'Dutchess.ai',
+                    reply_to: 'karl.steltenpohl@gmail.com'
+                },
+                tracking: {
+                    opens: true
+                }
+                };
+                mailchimp.post({path: '/campaigns', body: body})
+                .then(function(result) {
+                    console.log('Step 17.1: Create Campaign Successful');
+                    campaign = result;
+                    mS();
+                })
+                .catch(function(err) {
+                    console.log('ERROR',err);
+                });
             },
-            tracking: {
-                opens: true
-            }
-            };
-            mailchimp.post({path: '/campaigns', body: body})
-            .then(function(result) {
-                console.log('Step 17.1: Create Campaign Successful');
-                campaign = result;
-                mS();
-            })
-            .catch(function(err) {
-                console.log('ERROR',err);
-            });
-        },
-        // put campaign content
-        function putCampaignContent(mS) {
-            var plainText = `
+            // put campaign content
+            function putCampaignContent(mS) {
+                var plainText = `
 Dutchess.ai - QM/CL Strategy
 Predictions for ` + predDate.format("MM/DD/YYYY") + `:
 ==================================
@@ -571,58 +576,58 @@ Want to change how you receive these emails?
 You can ** update your preferences (*|UPDATE_PROFILE|*)
 or ** unsubscribe from this list (*|UNSUB|*)`;
 
-            var body = {
-            plain_text: plainText
-            };
-            
-            mailchimp.put({path: '/campaigns/' + campaign.id + '/content', body: body })
-            .then(function(result) {
-                //console.log('CONTENT',result);
-                console.log('Step 17.2: Put Campaign Content Successful');
-                mS();
-            })
-            .catch(function(err){
-                console.log('ERROR',err);
-            });
-        },
-        // sent tesd email
-        function sendTestEmail(mS) {
-            var body = {
-            test_emails: ['karl@webksd.com'],
-            send_type: 'plaintext'
-            };
-            mailchimp.post({path:'/campaigns/' + campaign.id + '/actions/test', body: body})
-            .then(function(result) {
-                console.log('Step 17.3: Send Test Email Successful');
-                mS();
-            })
-            .catch(function(err) {
-                console.log(err);
-            });
-        },
-        // send live email
-        function sendLiveEmail(mS) {
-            if(mailchimpLive == true) {
-            mailchimp.post({path:'/campaigns/' + campaign.id + '/actions/send'})
+                var body = {
+                    plain_text: plainText
+                };
+                
+                mailchimp.put({path: '/campaigns/' + campaign.id + '/content', body: body })
+                    .then(function(result) {
+                        //console.log('CONTENT',result);
+                        console.log('Step 17.2: Put Campaign Content Successful');
+                        mS();
+                    })
+                    .catch(function(err){
+                        console.log('ERROR',err);
+                    });
+            },
+            // sent tesd email
+            function sendTestEmail(mS) {
+                var body = {
+                test_emails: ['karl@webksd.com'],
+                send_type: 'plaintext'
+                };
+                mailchimp.post({path:'/campaigns/' + campaign.id + '/actions/test', body: body})
                 .then(function(result) {
-                console.log('Step 17.4: Send Live Email Successful');
-                step();
-                //mS();
+                    console.log('Step 17.3: Send Test Email Successful');
+                    mS();
                 })
                 .catch(function(err) {
-                console.log(err);
+                    console.log(err);
                 });
-            } else {
-            console.log('Step 17.4: Live Email Not Sent');
-            step();
-            }  
-        }
+            },
+            // send live email
+            function sendLiveEmail(mS) {
+                if(mailchimpLive == true) {
+                mailchimp.post({path:'/campaigns/' + campaign.id + '/actions/send'})
+                    .then(function(result) {
+                    console.log('Step 17.4: Send Live Email Successful');
+                    step();
+                    //mS();
+                    })
+                    .catch(function(err) {
+                    console.log(err);
+                    });
+                } else {
+                console.log('Step 17.4: Live Email Not Sent');
+                step();
+                }  
+            }
         ], function(err) {
-        if(err) {
-            console.log('Error: '+err);
-        }
+            if(err) {
+                console.log('Error: '+err);
+            }
         });
-    }
+    //}
 
   },
 

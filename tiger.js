@@ -77,7 +77,7 @@ var dataSchemaWinLoss   = dataSchema('winloss');
 
 // Settings
 var days = 100;
-var notification = 'sms';
+//var notification = 'sms';
 
 var startTime = moment().subtract(days,'days');
 var endTime = moment();
@@ -525,136 +525,141 @@ async.series([
         step();
     },
 
-    // Step 16 Email
-    function email(step) { 
-        if(notification == 'sms') {
-            sms.send('+16302175813', 'Dutchess.ai predicts Bitcoin will move ' + predictionDirection + ' from $' + lastPrice + ' for ' + predDate.format("MM/DD/YYYY")).then(function(){
-                step();
-            });
-        } else {
+    // Step 16 sms + Email
+    function notify(step) { 
+        //if(notification == 'sms') {
+            
+        //} else {
 
             async.series([
-            // create campaign
-            function createCampaign(mS) {
-                var body = {
-                type: "plaintext",
-                recipients: {
-                    list_id: listId
+
+                function sendSms(mS) {
+                    sms.send('+16302175813', 'Dutchess.ai predicts Bitcoin will move ' + predictionDirection + ' from $' + lastPrice + ' for ' + predDate.format("MM/DD/YYYY")).then(function(){
+                        mS();
+                    });
                 },
-                settings: {
-                    subject_line: 'Dutchess.ai Bitcoin Prediction for ' + predDate.format("MM/DD/YYYY"),
-                    preview_text: 'Dutchess.ai predicts Bitcoin will move ' + predictionDirection + ' from $' + lastPrice + ', take ' + predictionPosition + ' ' + predDate.format("MM/DD/YYYY"),
-                    title: 'Dutchess.ai - Bitcoin Prediction for ' + predDate.format("MM/DD/YYYY"),
-                    from_name: 'Dutchess.ai',
-                    reply_to: 'karl.steltenpohl@gmail.com'
-                },
-                tracking: {
-                    opens: true
-                }
-                };
-                mailchimp.post({path: '/campaigns', body: body})
-                .then(function(result) {
-                    console.log('Step 16.1: Create Campaign Successful');
-                    campaign = result;
-                    mS();
-                })
-                .catch(function(err) {
-                    console.log('ERROR',err);
-                });
-            },
-            // put campaign content
-            function putCampaignContent(mS) {
-                var plainText = `
-    Dutchess.ai - Bitcoin Strategy
-    Predictions for ` + predDate.format("MM/DD/YYYY") + `:
-    ==================================
 
-    Bitcoin (GDAX) price change direction prediction for ` + predDate.format("MM/DD/YYYY") + `: 
-    ` + predictionDirection + `
-
-    Current Bitcoin (GDAX) Price for ` + moment().format("MM/DD/YYYY") + `:
-    ` + currentPrice + `
-
-    Latest available historical quote for ` + latestRowDate.format("MM/DD/YYYY") + `:
-    Open: ` + openPrice + `  
-    High: ` + highPrice + `  
-    Low: ` + lowPrice + `  
-    Last: ` + lastPrice + `  
-
-    What do these numbers mean?
-    The price change direction prediction is upwards indicating the last price will be higher than the opening price, and downwards if it will be lower.
-
-    How are these numbers generated?
-    This is a black box program that incorporates the following:
-    - Bitcoin's historical price and Google Trends correlation for the past 100 days
-    - Prediction of tomorrows change direction using AWS Machine Learning 
-
-    ==================================
-
-    ALL INVESTMENTS INVOLVE RISKS, INCLUDING THE LOSS OF PRINCIPAL INVESTED. PAST PERFORMANCE OF A SECURITY DOES NOT GUARANTEE FUTURE RESULTS OR SUCCESS. DUTCHESS.AI AND KARL STELTENPOHL ARE NOT LIABLE FOR LOSSES OF ANY KIND. 
-
-    Copyright © *|CURRENT_YEAR|* *|LIST:COMPANY|*, All rights reserved.
-    *|IFNOT:ARCHIVE_PAGE|* *|LIST:DESCRIPTION|*
-
-    Our mailing address is:
-    *|LIST_ADDRESS|* *|END:IF|*
-
-    Want to change how you receive these emails?
-    You can ** update your preferences (*|UPDATE_PROFILE|*)
-    or ** unsubscribe from this list (*|UNSUB|*)`;
-
-                var body = {
-                plain_text: plainText
-                };
-                
-                mailchimp.put({path: '/campaigns/' + campaign.id + '/content', body: body })
-                .then(function(result) {
-                    //console.log('CONTENT',result);
-                    console.log('Step 16.2: Put Campaign Content Successful');
-                    mS();
-                })
-                .catch(function(err){
-                    console.log('ERROR',err);
-                });
-            },
-            // sent tesd email
-            function sendTestEmail(mS) {
-                var body = {
-                test_emails: ['karl@webksd.com'],
-                send_type: 'plaintext'
-                };
-                mailchimp.post({path:'/campaigns/' + campaign.id + '/actions/test', body: body})
-                .then(function(result) {
-                    console.log('Step 16.3: Send Test Email Successful');
-                    mS();
-                })
-                .catch(function(err) {
-                    console.log(err);
-                });
-            },
-            // send live email
-            function sendLiveEmail(mS) {
-                if(mailchimpLive == true) {
-                mailchimp.post({path:'/campaigns/' + campaign.id + '/actions/send'})
+                // create campaign
+                function createCampaign(mS) {
+                    var body = {
+                    type: "plaintext",
+                    recipients: {
+                        list_id: listId
+                    },
+                    settings: {
+                        subject_line: 'Dutchess.ai Bitcoin Prediction for ' + predDate.format("MM/DD/YYYY"),
+                        preview_text: 'Dutchess.ai predicts Bitcoin will move ' + predictionDirection + ' from $' + lastPrice + ', take ' + predictionPosition + ' ' + predDate.format("MM/DD/YYYY"),
+                        title: 'Dutchess.ai - Bitcoin Prediction for ' + predDate.format("MM/DD/YYYY"),
+                        from_name: 'Dutchess.ai',
+                        reply_to: 'karl.steltenpohl@gmail.com'
+                    },
+                    tracking: {
+                        opens: true
+                    }
+                    };
+                    mailchimp.post({path: '/campaigns', body: body})
                     .then(function(result) {
-                    console.log('Step 16.4: Send Live Email Successful');
-                    step();
-                    //mS();
+                        console.log('Step 16.1: Create Campaign Successful');
+                        campaign = result;
+                        mS();
                     })
                     .catch(function(err) {
-                    console.log(err);
+                        console.log('ERROR',err);
                     });
-                } else {
-                console.log('Step 16.4: Live Email Not Sent');
-                step();
-                }  
-            }
+                },
+                // put campaign content
+                function putCampaignContent(mS) {
+                    var plainText = `
+Dutchess.ai - Bitcoin Strategy
+Predictions for ` + predDate.format("MM/DD/YYYY") + `:
+==================================
+
+Bitcoin (GDAX) price change direction prediction for ` + predDate.format("MM/DD/YYYY") + `: 
+` + predictionDirection + `
+
+Current Bitcoin (GDAX) Price for ` + moment().format("MM/DD/YYYY") + `:
+` + currentPrice + `
+
+Latest available historical quote for ` + latestRowDate.format("MM/DD/YYYY") + `:
+Open: ` + openPrice + `  
+High: ` + highPrice + `  
+Low: ` + lowPrice + `  
+Last: ` + lastPrice + `  
+
+What do these numbers mean?
+The price change direction prediction is upwards indicating the last price will be higher than the opening price, and downwards if it will be lower.
+
+How are these numbers generated?
+This is a black box program that incorporates the following:
+- Bitcoin's historical price and Google Trends correlation for the past 100 days
+- Prediction of tomorrows change direction using AWS Machine Learning 
+
+==================================
+
+ALL INVESTMENTS INVOLVE RISKS, INCLUDING THE LOSS OF PRINCIPAL INVESTED. PAST PERFORMANCE OF A SECURITY DOES NOT GUARANTEE FUTURE RESULTS OR SUCCESS. DUTCHESS.AI AND KARL STELTENPOHL ARE NOT LIABLE FOR LOSSES OF ANY KIND. 
+
+Copyright © *|CURRENT_YEAR|* *|LIST:COMPANY|*, All rights reserved.
+*|IFNOT:ARCHIVE_PAGE|* *|LIST:DESCRIPTION|*
+
+Our mailing address is:
+*|LIST_ADDRESS|* *|END:IF|*
+
+Want to change how you receive these emails?
+You can ** update your preferences (*|UPDATE_PROFILE|*)
+or ** unsubscribe from this list (*|UNSUB|*)`;
+
+                    var body = {
+                    plain_text: plainText
+                    };
+                    
+                    mailchimp.put({path: '/campaigns/' + campaign.id + '/content', body: body })
+                    .then(function(result) {
+                        //console.log('CONTENT',result);
+                        console.log('Step 16.2: Put Campaign Content Successful');
+                        mS();
+                    })
+                    .catch(function(err){
+                        console.log('ERROR',err);
+                    });
+                },
+                // sent tesd email
+                function sendTestEmail(mS) {
+                    var body = {
+                    test_emails: ['karl@webksd.com'],
+                    send_type: 'plaintext'
+                    };
+                    mailchimp.post({path:'/campaigns/' + campaign.id + '/actions/test', body: body})
+                    .then(function(result) {
+                        console.log('Step 16.3: Send Test Email Successful');
+                        mS();
+                    })
+                    .catch(function(err) {
+                        console.log(err);
+                    });
+                },
+                // send live email
+                function sendLiveEmail(mS) {
+                    if(mailchimpLive == true) {
+                    mailchimp.post({path:'/campaigns/' + campaign.id + '/actions/send'})
+                        .then(function(result) {
+                        console.log('Step 16.4: Send Live Email Successful');
+                        step();
+                        //mS();
+                        })
+                        .catch(function(err) {
+                        console.log(err);
+                        });
+                    } else {
+                    console.log('Step 16.4: Live Email Not Sent');
+                    step();
+                    }  
+                }
             ], function(err) {
-            if(err) {
-                console.log('Error: '+err);
-            }
+                if(err) {
+                    console.log('Error: '+err);
+                }
             });
-        }
+        //}
       }
 
 ], function(err){

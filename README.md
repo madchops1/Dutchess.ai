@@ -64,3 +64,8 @@ http://developer.mailchimp.com/documentation/mailchimp/reference/campaigns/#acti
 
 ## TDA Resources
 http://apiforums.tdameritrade.com/tda-board/ubbthreads.php
+
+## Ideas
+- momentum 3 pick, drop when not picked again, keep rolling
+- breakout after resistance or support
+- ...
