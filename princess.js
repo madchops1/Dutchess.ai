@@ -29,7 +29,7 @@ var AWS               = require('aws-sdk');
 var uuid              = require('node-uuid');
 
 const sms          = require('./lib/sms.js');
-const notification = 'twilio';
+const notification = 'email';
 
 // Quandl
 var quandlApiKey      = secrets.QuandlApiKey;
@@ -107,8 +107,8 @@ var mailchimp         = new Mailchimp(mailchimpApiKey);
 var campaign;
 
 
-sms.send();
-process.exit();
+//sms.send();
+//process.exit();
 
 async.series([
 
