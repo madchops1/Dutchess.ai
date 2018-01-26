@@ -18,7 +18,9 @@
     "moment": "^2.20.1",
     "node-oanda": "^1.1.20",
     "node-uuid": ">= 1.4.1",
+    "request": "^2.83.0",
     "scraperjs": "^1.2.0",
-    "sleep": "^5.1.1"
+    "sleep": "^5.1.1",
+    "twilio": "^3.11.1"
   }
 }
