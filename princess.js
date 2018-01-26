@@ -23,13 +23,14 @@ var GoogleSpreadsheet = require('google-spreadsheet');
 var Mailchimp         = require('mailchimp-api-v3');
 var secrets           = require('./secrets.json');
 var args              = process.argv.slice(2);
+const request         = require("request");
 
 // AWS dependencies
 var AWS               = require('aws-sdk');
 var uuid              = require('node-uuid');
 
-const sms          = require('./lib/sms.js');
-const notification = 'email';
+const sms             = require('./lib/sms.js');
+const notification    = 'sms';
 
 // Quandl
 var quandlApiKey      = secrets.QuandlApiKey;
@@ -105,10 +106,6 @@ var mailchimpApiKey   = secrets.MailchimpApiKey;
 var listId            = secrets.MailchimpListId;
 var mailchimp         = new Mailchimp(mailchimpApiKey);
 var campaign;
-
-
-//sms.send();
-//process.exit();
 
 async.series([
 
@@ -494,12 +491,10 @@ async.series([
   // Step 17 create mailchimp campaign, content, test, and send 
   function email(step) {    
 
-    if(notification == 'twilio') {
-
-        sms.send('+16302175813', 'Dutchess.ai QM/CL prediction: ' + contract + ' will move ' + predictionDirection + ' from $' + lastPrice + ', take ' + predictionPosition + ' ' + predDate.format("MM/DD/YYYY")).then(function(){
+    if(notification == 'sms') {
+        sms.send('+16302175813', 'Dutchess.ai QM/CL prediction: ' + contract + ' will move ' + predictionDirection + ' from $' + lastPrice + ', take ' + predictionPosition + ' for ' + predDate.format("MM/DD/YYYY")).then(function(){
             step();
         });
-
     } else {
 
         async.series([
