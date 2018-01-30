@@ -52,9 +52,9 @@ var bucketName        = secrets.TigerBucketName;
 var keyName           = 'data-' + moment().format("YYYY-MM-DD") + '.csv';
 
 // Mailchimp
-var mailchimpLive;
+var test              = false;
 var Mailchimp         = require('mailchimp-api-v3');
-if(args[0] === 'test') { mailchimpLive = false; } else { mailchimpLive = true; }
+if(args[0] === 'test') { test = true; }
 var mailchimpApiKey   = secrets.MailchimpApiKey;
 var listId            = secrets.MailchimpListId;
 var mailchimp         = new Mailchimp(mailchimpApiKey);
@@ -534,7 +534,7 @@ async.series([
             async.series([
 
                 function sendSms(mS) {
-                    sms.send('+16302175813', 'Dutchess.ai predicts Bitcoin will move ' + predictionDirection + ' from $' + lastPrice + ' for ' + predDate.format("MM/DD/YYYY")).then(function(){
+                    sms.send('+16302175813', 'Dutchess.ai predicts Bitcoin will move ' + predictionDirection + ' from $' + currentPrice + ' for ' + predDate.format("MM/DD/YYYY"), test).then(function(){
                         mS();
                     });
                 },
@@ -548,7 +548,7 @@ async.series([
                     },
                     settings: {
                         subject_line: 'Dutchess.ai Bitcoin Prediction for ' + predDate.format("MM/DD/YYYY"),
-                        preview_text: 'Dutchess.ai predicts Bitcoin will move ' + predictionDirection + ' from $' + lastPrice + ', take ' + predictionPosition + ' ' + predDate.format("MM/DD/YYYY"),
+                        preview_text: 'Dutchess.ai predicts Bitcoin will move ' + predictionDirection + ' from $' + currentPrice + ', take ' + predictionPosition + ' ' + predDate.format("MM/DD/YYYY"),
                         title: 'Dutchess.ai - Bitcoin Prediction for ' + predDate.format("MM/DD/YYYY"),
                         from_name: 'Dutchess.ai',
                         reply_to: 'karl.steltenpohl@gmail.com'
@@ -639,7 +639,7 @@ or ** unsubscribe from this list (*|UNSUB|*)`;
                 },
                 // send live email
                 function sendLiveEmail(mS) {
-                    if(mailchimpLive == true) {
+                    if(!test) {
                     mailchimp.post({path:'/campaigns/' + campaign.id + '/actions/send'})
                         .then(function(result) {
                         console.log('Step 16.4: Send Live Email Successful');
@@ -647,11 +647,11 @@ or ** unsubscribe from this list (*|UNSUB|*)`;
                         //mS();
                         })
                         .catch(function(err) {
-                        console.log(err);
+                            console.log(err);
                         });
                     } else {
-                    console.log('Step 16.4: Live Email Not Sent');
-                    step();
+                        console.log('Step 16.4: Live Email Not Sent');
+                        step();
                     }  
                 }
             ], function(err) {
