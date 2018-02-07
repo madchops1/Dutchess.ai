@@ -1,49 +1,31 @@
-var secrets           = require('./secrets.json');
-var async             = require('async');
-var moment            = require('moment');
-var json2csv          = require('json2csv');
-var sleep             = require('sleep');
-var args              = process.argv.slice(2);
-const sms             = require('./lib/sms.js');
+let secrets             = require('./config/secrets.json');
+const async             = require('async');
+const moment            = require('moment');
+const json2csv          = require('json2csv');
+const sleep             = require('sleep');
+const args              = process.argv.slice(2);
+
+// Dutchess dependencies
+const sms               = require('./lib/sms.js');
+const fix               = require('./lib/fix.js');
 
 // AWS dependencies
-var AWS               = require('aws-sdk');
-var uuid              = require('node-uuid');
+const AWS               = require('aws-sdk');
+const uuid              = require('node-uuid');
 
-// Coinbase
-var Client            = require('coinbase').Client;
-var coinbase          = new Client({'apiKey': secrets.CoinbaseApiKey, 'apiSecret': secrets.CoinbaseApiSecret});
-const Gdax            = require('gdax');
-const publicClient    = new Gdax.PublicClient();
+// Google trends
+const googleTrends      = require('google-trends-api');
 
-// Google Trends
-var googleTrends      = require('google-trends-api');
+// Gdax
+const Gdax              = require('gdax');
 
-// Google Sheets
-var GoogleSpreadsheet = require('google-spreadsheet');
-var sheetId           = secrets.TigerSheetId;
-var doc               = new GoogleSpreadsheet(sheetId);
-var creds             = require('./sheetsClientSecret.json');
-var sheet;
-var latestRowDate;
-var missingData;
-var updatedDoc;
-var updatedSheet;
-var csvData;
-var newRows           = [];
-var predDate;
-var currentPrice;
-var openPrice;
-var lastPrice;
-var lowPrice;
-var highPrice;
+let test = false;
+if(args[0] === 'test') { test = true; }
 
-// S3
-var bucketName        = secrets.TigerBucketName;
-var keyName           = 'data-' + moment().format("YYYY-MM-DD") + '.csv';
 
-/*
 // Machine Learning 
+const sagemaker = new AWS.SageMaker();
+/*
 var mL                = new AWS.MachineLearning({'region': 'us-east-1'});
 var trainingDatasourceId;
 var evaluationDatasourceId;
@@ -55,31 +37,78 @@ var predictionScore;
 var predictionDirection;
 var predictionPosition;
 */
-//wss://ws-feed.gdax.com
 
-var priceStack = [0.0];
+function createWebsocket(test) {
 
-/*
-const websocket = new Gdax.WebsocketClient(
-    ['BTC-USD'],
-    'wss://ws-feed.gdax.com',
-    {
-      key: secrets.gDaxApiKey,
-      secret: secrets.gDaxApiSecret,
-      passphrase: secrets.gDaxPassphrase
-    },
-    { channels: ['ticker'] }
-  );
+    let wsUrl = 'wss://ws-feed.gdax.com';
 
+    if(test) {
+        secrets.gDaxApiKey = secrets.gDaxSandboxApiKey;
+        secrets.gDaxApiSecret = secrets.gDaxSandboxApiSecret;
+        secrets.gDaxPassphrase = secrets.gDaxSandboxPassphrase;
+        wsUrl = 'wss://ws-feed-public.sandbox.gdax.com';
+    }
 
-websocket.on('message', data => {
+    return new Gdax.WebsocketClient(
+        ['BTC-USD'],
+        wsUrl,
+        {
+            key: secrets.gDaxApiKey,
+            secret: secrets.gDaxApiSecret,
+            passphrase: secrets.gDaxPassphrase
+        },
+        { channels: ['ticker'] }
+    );
+}
+
+let priceStack = [0.0];
+let json = [];
+const ws = createWebsocket(test);
+
+var params = {
+    NotebookInstanceName: 'STRING_VALUE', /* required */
+    SessionExpirationDurationInSeconds: 0
+};
+
+sagemaker.createPresignedNotebookInstanceUrl(params, function(err, data) {
+    if (err) console.log(err, err.stack); // an error occurred
+    else     console.log(data);           // successful response
+});
+
+ws.on('message', data => {
     //
     if(data.type === 'ticker') {
-        
-        priceStack.push(data.price);
+
+        let time = moment(data.time);
+
+        json.push({"start":time.format("YYYY-MM-DD HH:mm:ss"), "target": [data.price, data.volume_24h, data.low_24h, data.high_24h, data.last_size], "cat": 0});
+        // {"start":"1999-01-30 00:00:00", "target": [2.0, 1.0], "cat": 0}
+        console.log(json);
+        /*
+        { type: 'ticker',
+        sequence: 4986249486,
+        product_id: 'BTC-USD',
+        price: '9814.96000000',
+        open_24h: '10966.51000000',
+        volume_24h: '33184.8213776',
+        low_24h: '9814.96000000',
+        high_24h: '10999.00000000',
+        volume_30d: '634822.83077938',
+        best_bid: '9814.95',
+        best_ask: '9814.96',
+        side: 'buy',
+        time: '2018-01-31T04:53:38.721000Z',
+        trade_id: 35149878,
+        last_size: '0.14198936' }
+        */
+
+
+
+        /*
+        //priceStack.push(data.price);
 
         var p = parseFloat(data.price);
-        var lp = parseFloat(priceStack[priceStack.length - 1]);
+        var lp = parseFloat(priceStack[priceStack.length - 2]);
 
         if(lp < p) {
             console.log('Upwards');
@@ -92,17 +121,17 @@ websocket.on('message', data => {
         console.log('Prediction:')
         console.log('data',data, p, lp);
         console.log('');
+        */
         
 
     }
 });
 
-websocket.on('error', err => {
+ws.on('error', err => {
     console.log('error',err);
 
 });
 
-websocket.on('close', () => {
+ws.on('close', () => {
 
 });
-*/

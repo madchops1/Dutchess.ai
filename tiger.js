@@ -3,11 +3,10 @@ DUTCHESS.AI - "TIGER STRATEGY"
 - Black Box
 - Runs Daily @ 11:30pm
 - AWS ML training of Bitcoin's historical price and Google Trends correlation
-- //Cross reference mid pivor for suggestion
 - Twitter Emotion for the day... vibe api whats the vibe
 */
 
-var secrets           = require('./secrets.json');
+var secrets           = require('./config/secrets.json');
 var async             = require('async');
 var moment            = require('moment');
 var json2csv          = require('json2csv');
@@ -32,7 +31,7 @@ var googleTrends      = require('google-trends-api');
 var GoogleSpreadsheet = require('google-spreadsheet');
 var sheetId           = secrets.TigerSheetId;
 var doc               = new GoogleSpreadsheet(sheetId);
-var creds             = require('./sheetsClientSecret.json');
+var creds             = require('./config/sheetsClientSecret.json');
 var sheet;
 var latestRowDate;
 var missingData;
@@ -640,15 +639,15 @@ or ** unsubscribe from this list (*|UNSUB|*)`;
                 // send live email
                 function sendLiveEmail(mS) {
                     if(!test) {
-                    mailchimp.post({path:'/campaigns/' + campaign.id + '/actions/send'})
-                        .then(function(result) {
-                        console.log('Step 16.4: Send Live Email Successful');
-                        step();
-                        //mS();
-                        })
-                        .catch(function(err) {
-                            console.log(err);
-                        });
+                        mailchimp.post({path:'/campaigns/' + campaign.id + '/actions/send'})
+                            .then(function(result) {
+                                console.log('Step 16.4: Send Live Email Successful');
+                                step();
+                                //mS();
+                            })
+                            .catch(function(err) {
+                                console.log(err);
+                            });
                     } else {
                         console.log('Step 16.4: Live Email Not Sent');
                         step();
@@ -660,6 +659,66 @@ or ** unsubscribe from this list (*|UNSUB|*)`;
                 }
             });
         //}
+      },
+
+      // Step 17 cleanup endpoint
+      function cleanupEndpoint(step) {
+        console.log('Step 17: Cleanup Endpoint');
+        var params = { MLModelId: modelId };
+        mL.deleteRealtimeEndpoint(params, function(err, data) {
+            if (err) {
+                console.log(err, err.stack); // an error occurred
+            } else {
+                step();
+                console.log(data); // successful response
+            }
+        });
+      },
+      
+      // Step 18 cleanup model
+      function cleanupModel(step) {
+        console.log('Step 18: Cleanup Model');
+        var params = { MLModelId: modelId };
+        mL.deleteMLModel(params, function(err, data) {
+            if (err) {
+                console.log(err, err.stack); // an error occurred
+            } else {
+               console.log(data);           // successful response
+               step();
+            }
+        });
+      },
+
+      // Step 19 cleanup datasource 1 training
+      function cleanupTrainingDataSources(step) {
+        console.log('Step 19: Cleanup Datasources');
+        var params = {
+            DataSourceId: trainingDatasourceId
+        };
+        mL.deleteDataSource(params, function(err, data) {
+            if (err) {
+                console.log(err, err.stack);
+            } else {
+                console.log(data);
+                step();
+            }
+        });
+      },
+
+      // Step 20 cleanup datasource 2 evaluation
+      function cleanupEvaluationDataSource(step) {
+        console.log('Step 20: Cleanup Datasources');
+        var params = {
+            DataSourceId: trainingDatasourceId
+        };
+        mL.deleteDataSource(params, function(err, data) {
+            if (err) {
+                console.log(err, err.stack);
+            } else {
+                console.log(data);
+                step();
+            }
+        });
       }
 
 ], function(err){

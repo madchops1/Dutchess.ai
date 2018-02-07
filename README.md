@@ -1,6 +1,9 @@
+
 # Dutchess.ai
 
-A suite of nodejs black boxes for machine learning and automated trading. All named after cats.
+  /\_/\   A suite of nodejs black boxes for machine learning and automated trading. All named after cats.
+ ( o.o )  01001001  01110111 01100001 01101110 01110100  01101001 01110100 
+  > ^ <   01101101 01100101 01101111 01110111      
 
 ## Get Started
 
@@ -18,7 +21,8 @@ A suite of nodejs black boxes for machine learning and automated trading. All na
     "MailchimpApiKey": "XXXXXXXXXXX-us7",
     "MailchimpListId": "XXXXXXXXXXX",
     "CoinbaseApiKey": "XXXXXXXXXXX",
-    "CoinbaseApiSecret": "XXXXXXXXXXX"
+    "CoinbaseApiSecret": "XXXXXXXXXXX",
+    ...
 }
 
 ### sheetsClientSecret.json
@@ -32,7 +36,8 @@ A suite of nodejs black boxes for machine learning and automated trading. All na
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
     "token_uri": "https://accounts.google.com/o/oauth2/token",
     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_x509_cert_url": "XXXXXXXXXXX"
+    "client_x509_cert_url": "XXXXXXXXXXX",
+    ...
 }
 
 ## AWS Configuration
@@ -52,8 +57,9 @@ for more information.
 
 ## Running the black boxes
 
-    node princess.js    AI, ML, OIL
-    node tiger.js       AI, ML, BTC
+    node princess.js
+    node tiger.js
+    node super-tiger.js
 
 ## AWS Resources
 https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/MachineLearning.html#predict-property
@@ -69,3 +75,5 @@ http://apiforums.tdameritrade.com/tda-board/ubbthreads.php
 - momentum 3 pick, drop when not picked again, keep rolling
 - breakout after resistance or support
 - ...
+
+
