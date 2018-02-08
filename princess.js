@@ -21,7 +21,7 @@ var clone             = require('clone');
 var scraperjs         = require('scraperjs');
 var GoogleSpreadsheet = require('google-spreadsheet');
 var Mailchimp         = require('mailchimp-api-v3');
-var secrets           = require('./secrets.json');
+var secrets           = require('./config/secrets.json');
 var args              = process.argv.slice(2);
 const request         = require("request");
 
@@ -47,7 +47,7 @@ var contract;
 
 // Data and Sheets Manipulation
 var doc               = new GoogleSpreadsheet(sheetId);
-var creds             = require('./sheetsClientSecret.json');
+var creds             = require('./config/sheetsClientSecret.json');
 var updatedDoc;
 var sheet;
 var latestRowDate;
@@ -494,7 +494,7 @@ async.series([
     async.series([
         // sms
         function sendSms(mS) {
-            sms.send('+16302175813', 'Dutchess.ai QM/CL prediction: ' + contract + ' will move ' + predictionDirection + ' from $' + lastPrice + ', take ' + predictionPosition + ' for ' + predDate.format("MM/DD/YYYY")).then(function(){
+            sms.send('+16302175813', 'Dutchess.ai QM/CL prediction: ' + contract + ' will move ' + predictionDirection + ' from $' + lastPrice + ', take ' + predictionPosition + ' for ' + predDate.format("MM/DD/YYYY"), test).then(function(){
                 mS();
             });
         },
@@ -625,23 +625,68 @@ or ** unsubscribe from this list (*|UNSUB|*)`;
     });
   },
 
-  // Step XX Log completion
+  // Step 18 Log completion
   function logCompletion(step) {
     console.log('Step 18: Log, TODO...');
     step();
   },
 
-  // Step XX Cleanup
-  function cleanUp(step) {
-    console.log('Step 19: Cleanup, TODO...');
-    // delete the data.csv from s3 from day before yesterday.
-    // basically always keep a backup from prev day
-    // delete realtime endpoint
-    // delete the model
-    // delete the datasources
-    //step();
+  // Step 19 cleanup endpoint
+  function cleanupEndpoint(step) {
+    console.log('Step 19: Cleanup Endpoint');
+    var params = { MLModelId: modelId };
+    mL.deleteRealtimeEndpoint(params, function(err, data) {
+        if (err) {
+            console.log(err, err.stack); // an error occurred
+        } else {
+            step();
+        }
+    });
+  },
+  
+  // Step 20 cleanup model
+  function cleanupModel(step) {
+    console.log('Step 20: Cleanup Model');
+    var params = { MLModelId: modelId };
+    mL.deleteMLModel(params, function(err, data) {
+        if (err) {
+            console.log(err, err.stack); // an error occurred
+        } else {
+           step();
+        }
+    });
+  },
 
+  // Step 21 cleanup datasource 1 training
+  function cleanupTrainingDataSources(step) {
+    console.log('Step 21: Cleanup Training Datasource');
+    var params = {
+        DataSourceId: trainingDatasourceId
+    };
+    mL.deleteDataSource(params, function(err, data) {
+        if (err) {
+            console.log(err, err.stack);
+        } else {
+            step();
+        }
+    });
+  },
+
+  // Step 22 cleanup datasource 2 evaluation
+  function cleanupEvaluationDataSource(step) {
+    console.log('Step 22: Cleanup Evaluation Datasource');
+    var params = {
+        DataSourceId: trainingDatasourceId
+    };
+    mL.deleteDataSource(params, function(err, data) {
+        if (err) {
+            console.log(err, err.stack);
+        } else {
+            step();
+        }
+    });
   }
+
   
 ], function(err){
   if( err ) {

@@ -526,16 +526,14 @@ async.series([
 
     // Step 16 sms + Email
     function notify(step) { 
-        //if(notification == 'sms') {
-            
-        //} else {
 
             async.series([
 
+                // send sms
                 function sendSms(mS) {
                     sms.send('+16302175813', 'Dutchess.ai predicts Bitcoin will move ' + predictionDirection + ' from $' + currentPrice + ' for ' + predDate.format("MM/DD/YYYY"), test).then(function(){
                         mS();
-                    });
+                    }); 
                 },
 
                 // create campaign
@@ -670,7 +668,6 @@ or ** unsubscribe from this list (*|UNSUB|*)`;
                 console.log(err, err.stack); // an error occurred
             } else {
                 step();
-                console.log(data); // successful response
             }
         });
       },
@@ -683,7 +680,6 @@ or ** unsubscribe from this list (*|UNSUB|*)`;
             if (err) {
                 console.log(err, err.stack); // an error occurred
             } else {
-               console.log(data);           // successful response
                step();
             }
         });
@@ -699,7 +695,6 @@ or ** unsubscribe from this list (*|UNSUB|*)`;
             if (err) {
                 console.log(err, err.stack);
             } else {
-                console.log(data);
                 step();
             }
         });
@@ -715,7 +710,6 @@ or ** unsubscribe from this list (*|UNSUB|*)`;
             if (err) {
                 console.log(err, err.stack);
             } else {
-                console.log(data);
                 step();
             }
         });

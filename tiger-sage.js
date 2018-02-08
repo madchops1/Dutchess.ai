@@ -1,4 +1,5 @@
 /*
+DEPRECATED - DELETE IF NOTHING CHANGES FOR A WHILE
 DUTCHESS.AI - "TIGER SAGE STRATEGY"
 Black Box AWS Sagemaker Ml Training 
 of Historical Bitcoin Price and Google Trends
