@@ -1,7 +1,9 @@
 /*
-DUTCHESS.AI - "PRINCESS STRATEGY"
-- Black Box
-- Runs daily @ 11:30pm 
+  /\_/\
+ ( o.o )
+  > ^ <
+DUTCHESS.AI - "PRINCESS"
+- Runs daily @ 6pm 
 - QM futures historical analysis (data from QUANDL)
 - Get current QM contract from CME
 - Update Google Sheets Datastore

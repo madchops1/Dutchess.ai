@@ -1,7 +1,9 @@
 /*
-DUTCHESS.AI - "TIGER STRATEGY"
-- Black Box
-- Runs Daily @ 11:30pm
+  /\_/\
+ ( o.o )
+  > ^ <
+DUTCHESS.AI - "TIGER"
+- Runs Daily @ 11:00pm
 - AWS ML training of Bitcoin's historical price and Google Trends correlation
 - Twitter Emotion for the day... vibe api whats the vibe
 */
