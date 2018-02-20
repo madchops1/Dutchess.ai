@@ -18,6 +18,7 @@ const args = process.argv.slice(2);
 // Dutchess dependencies
 const sms = require('./lib/sms.js');
 const fix = require('./lib/fix.js');
+const sunny = require('./lib/sunny.js');
 
 // AWS dependencies
 const AWS = require('aws-sdk');
@@ -46,7 +47,7 @@ let tradeAmount = 3000;
 let tradeAmountCoin = 0.1;
 
 // should the delay dynamically change?
-let risk = 0.005;
+let risk = 0.01;
 //let riskAmount = 0;
 //let usdAccountValue = 0;
 let targetRatio = 3; // 3:risk
@@ -61,6 +62,7 @@ let losers = 0;
 // should I alter the risk and target based on the winner:loser ration
 
 let orderCount = 0;
+let ticks = 144;
 //var buyDelay = 3; // 9
 //let delay = buyDelay;
 //let sellDelay = 1; // 3
@@ -74,7 +76,9 @@ let orderCount = 0;
 
 let currentState = 0;
 let overallAvg = 0;
-
+let crossOvers = [];
+let date = moment();
+//let mode = 'observe';
 
 const ws = createWebsocket(test, coin);
 ws.on('message', data => {
@@ -86,6 +90,9 @@ ws.on('message', data => {
         //if ((count % delay) == 0 || count == 1) {
 
         tickerData.push(data.price);
+        if (tickerData.length > ticks) {
+            tickerData.shift();
+        }
         //console.log('TICK');
 
 
@@ -98,44 +105,123 @@ ws.on('message', data => {
             //let momentum = parseFloat((parseFloat(tickerData[currentIndex].price) / parseFloat(tickerData[lastIndex].price)) * 100).toFixed(3);
             //momentumData.push(momentum);
             overallAvg = getArrayAvg(tickerData);
-            currentState = getArrayAvg([tickerData[currentIndex], tickerData[lastIndex]]);
+            currentState = getArrayAvg([tickerData[tickerData.length - 1], tickerData[tickerData.length - 2]]);
 
-            let currentAvgsLast = currentAvgs.length - 1;
-            let overallAvgsLast = overallAvgs.length - 1;
+            // get the index of the last
+            //let currentAvgsLast = currentAvgs.length - 1;
+            //let overallAvgsLast = overallAvgs.length - 1;
 
-
+            // then push em 
             overallAvgs.push(overallAvg);
             currentAvgs.push(currentState);
 
 
-            console.log(currentState, overallAvg, currentAvgs[currentAvgsLast], overallAvgs[overallAvgsLast]);
+            console.log(currentState, overallAvg, currentAvgs[currentAvgs.length - 2], overallAvgs[overallAvgs.length - 2], profit, profitTarget, stopLoss, totalProfit - totalFees, orderCount, winners, losers);
+
+            if (holdingData) {
+                //profit = (tradeAmount * data.price / holdingData.price) - tradeAmount
+                profit = (data.price - holdingData.price) * tradeAmountCoin;
+                profitTarget = (tradeAmountCoin * holdingData.price * target);
+                stopLoss = (tradeAmountCoin * holdingData.price * risk) * -1;
+            } else {
+                profit = 0; // reset profit
+                profitTarget = 0;
+                stopLoss = 0;
+            }
 
             // crossover up now state is over, last state is under
-            if (!holdingData && currentState > overallAvg && currentAvgs[currentAvgsLast] <= overallAvgs[overallAvgsLast]) {
-                //buy
-                holdingData = data.price;
-                console.log('BUY', data.price);
+            if (currentState > overallAvg && currentAvgs[currentAvgs.length - 2] <= overallAvgs[overallAvgs.length - 2]) {
+
+
+                crossOvers.push(overallAvg);
+                if (crossOvers.length > 3) {
+                    crossOvers.shift();
+                }
+
+                console.log('Crossing Upwards', crossOvers);
+
+                if (crossOvers.length >= 2) {
+                    if (crossOvers[crossOvers.length - 1] > crossOvers[crossOvers.length - 2]) {
+
+                        // 
+                        console.log('Upward Momentum Detected');
+                        //mode = 'trade'
+
+                        // buy on upward crossover if no holding
+                        if (!holdingData) {
+                            ++orderCount;
+                            let fee = tradeAmountCoin * data.price * feeRate
+                            totalFees = parseFloat(totalFees) + parseFloat(fee);
+                            console.log('BUY');
+                            holdingData = data;
+                        }
+                    }
+                }
 
             }
             // crossover down
-            else if (holdingData && currentState < overallAvg && currentAvgs[currentAvgsLast] >= overallAvgs[overallAvgsLast]) {
+            else if (currentState < overallAvg && currentAvgs[currentAvgs.length - 2] >= overallAvgs[overallAvgs.length - 2]) {
+
+                //holdingData && 
                 // sell
-                console.log('SELL', holdingData, data.price);
-                holdingData = false;
-                tickerData = [];
+                crossOvers.push(overallAvg);
+                console.log('Crossing Downwards', crossOvers);
+
+                //tickerData = [];
+                /*if (holdingData) {
+                    if (profit >= profitTarget) {
+                        console.log('SELL')
+                        totalProfit = totalProfit + profit;
+                        let fee = tradeAmountCoin * data.price * feeRate
+                        totalFees = parseFloat(totalFees) + parseFloat(fee);
+                        holdingData = false;
+                        ++orderCount;
+                        ++winners;
+                    } else if (profit <= stopLoss) {
+                        console.log('SELL');
+                        totalProfit = totalProfit + profit;
+                        let fee = tradeAmountCoin * data.price * feeRate
+                        totalFees = parseFloat(totalFees) + parseFloat(fee);
+                        holdingData = false;
+                        ++orderCount;
+                        ++losers;
+                    }
+                }
+                */
 
 
-            } else if (holdingData) {
-                //if (holdingData) {
-                // hold
-                console.log('HOLD');
+            } else {
 
-            } else if (!holdingData) {
-                // moving down waiting for up
-                console.log('NO HOLDING YET');
-                //if(currentState < overallAvg)
+                if (holdingData) {
 
-                //}
+                    if (profit >= profitTarget) {
+                        console.log('SELL')
+                        totalProfit = totalProfit + profit;
+                        let fee = tradeAmountCoin * data.price * feeRate
+                        totalFees = parseFloat(totalFees) + parseFloat(fee);
+                        holdingData = false;
+                        ++orderCount;
+                        ++winners;
+                        //mode = 'observe'
+                    } else if (profit <= stopLoss) {
+                        console.log('SELL');
+                        totalProfit = totalProfit + profit;
+                        let fee = tradeAmountCoin * data.price * feeRate
+                        totalFees = parseFloat(totalFees) + parseFloat(fee);
+                        holdingData = false;
+                        ++orderCount;
+                        ++losers;
+                        //mode = 'observe'
+                    } else {
+                        console.log('HOLD', profit * 100 / holdingData.price);
+                    }
+
+
+                } else {
+                    // no hold yet
+                    console.log('NO HOLDING YET');
+                }
+
             }
 
         }
