@@ -7,6 +7,8 @@ DUTCHESS.AI - "PUSS"
 - Calculates momentum between ticks
 - when we get x positive momentum reads buy in
 - then wait until we get x down tick b4 selling
+
+forever start -o ~/Dutchess.ai/.tmp/puss.out.log -e ~/Dutchess.ai/.tmp/puss.err.log puss.js
 */
 let secrets = require('./config/secrets.json');
 const async = require('async');
