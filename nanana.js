@@ -43,7 +43,6 @@ let profit = 0;
 // Dials
 let coin = ['LTC-USD'];
 let currency = 'LTC';
-let tradeAmount = 3000;
 let tradeAmountCoin = 0.1;
 
 // should the delay dynamically change?
@@ -171,6 +170,12 @@ ws.on('message', data => {
                         let fee = tradeAmountCoin * data.price * feeRate
                         totalFees = parseFloat(totalFees) + parseFloat(fee);
                         console.log('BUY');
+                        fix.placeOrder('buy', 'market', tradeAmountCoin, coin[0], false)
+                            .then(function (dataa, err) {
+                                if (err) { console.log(err); }
+                                //console.log('buy', price, dataa, err);
+
+                            });
                         holdingData = data;
                     }
                 }
@@ -218,6 +223,11 @@ ws.on('message', data => {
                         totalProfit = totalProfit + profit;
                         let fee = tradeAmountCoin * data.price * feeRate
                         totalFees = parseFloat(totalFees) + parseFloat(fee);
+                        fix.placeOrder('sell', 'market', tradeAmountCoin, coin[0], false)
+                            .then(function (dataa, err) {
+                                if (err) { console.log(err); }
+                                //console.log('sell', dataa, err);
+                            });
                         holdingData = false;
                         ++orderCount;
                         ++winners;
@@ -227,6 +237,11 @@ ws.on('message', data => {
                         totalProfit = totalProfit + profit;
                         let fee = tradeAmountCoin * data.price * feeRate
                         totalFees = parseFloat(totalFees) + parseFloat(fee);
+                        fix.placeOrder('sell', 'market', tradeAmountCoin, coin[0], false)
+                            .then(function (dataa, err) {
+                                if (err) { console.log(err); }
+                                //console.log('sell', dataa, err);
+                            });
                         holdingData = false;
                         ++orderCount;
                         ++losers;
