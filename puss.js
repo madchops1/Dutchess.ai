@@ -38,49 +38,81 @@ let profit = 0;
 
 // Dials
 let coin = ['LTC-USD'];
-let tradeAmount = 3000;
+let currency = 'LTC';
+let tradeAmount = 0;
 let tradeAmountCoin = 0.1;
+
+// should the delay dynamically change?
+let risk = .01;
+//let riskAmount = 0;
+//let usdAccountValue = 0;
+let targetRatio = 3; // 3:risk
+let target = risk * targetRatio;
+let stopLoss = 0;
+let profitTarget = 0;
+let feeRate = 0.003;
+let totalFees = 0;
+
+let winners = 0;
+let losers = 0;
+// should I alter the risk and target based on the winner:loser ration
+
 let orderCount = 0;
-var buyDelay = 10; // 9
+var buyDelay = 3; // 9
 let delay = buyDelay;
 let sellDelay = 1; // 3
 
-const ws = createWebsocket(test, coin);
+//fix.getAccountValue(currency)
+//    .then(function (dataa, err) {
+//        if (err) { console.log(err); }
+//console.log(dataa);
 
+//   });
+
+
+
+const ws = createWebsocket(test, coin);
 ws.on('message', data => {
     //
     if (data.type === 'ticker') {
         ++count
         //console.log(count, delay);
 
-        if ((count % delay) == 0) {
+        if ((count % delay) == 0 || count == 1) {
 
             tickerData.push(data);
 
             if (tickerData.length >= 2) {
-                //console.log(tickerData);
+
                 currentIndex = tickerData.length - 1;
                 lastIndex = tickerData.length - 2;
 
                 let momentum = parseFloat((parseFloat(tickerData[currentIndex].price) / parseFloat(tickerData[lastIndex].price)) * 100).toFixed(3);
                 momentumData.push(momentum);
 
-
-
-                if (momentumData.length >= 3) {
+                if (momentumData.length >= 2) {
 
                     firstIndex = momentumData.length - 1;
                     secondIndex = momentumData.length - 2;
-                    thirdIndex = momentumData.length - 3;
+                    //thirdIndex = momentumData.length - 3;
 
                     tradeAmount = parseFloat(data.price) * tradeAmountCoin
 
                     if (holdingData) {
-                        profit = (tradeAmount * data.price / holdingData.price) - tradeAmount
+                        //profit = (tradeAmount * data.price / holdingData.price) - tradeAmount
+                        profit = (data.price - holdingData.price) * tradeAmountCoin;
+                        profitTarget = (tradeAmountCoin * holdingData.price * target);
+                        stopLoss = (tradeAmountCoin * holdingData.price * risk) * -1;
                     } else {
-                        profit = 0;
+                        profit = 0; // reset profit
+                        profitTarget = 0;
+                        stopLoss = 0;
                     }
-                    fee = tradeAmountCoin * data.price * 0.00646
+
+                    //console.log('ALPHA', tradeAmount, profit, profitTarget, stopLoss)
+                    //process.exit(1);
+
+
 
 
                     //if(momentumData[firstIndex]  > 100 &&
@@ -95,17 +127,26 @@ ws.on('message', data => {
                     //if(!holdingData && parseFloat(momentumData[firstIndex]) > 100 &&
                     //    parseFloat(momentumData[firstIndex]) > parseFloat(momentumData[secondIndex])) {
 
+                    //if (!holdingData &&
+                    //    ((parseFloat(momentumData[firstIndex]) > 100 && parseFloat(momentumData[secondIndex]) > 100) ||
+                    //        (parseFloat(momentumData[firstIndex]) > 100 && parseFloat(momentumData[firstIndex]) > parseFloat(momentumData[secondIndex])))) {
+
                     if (!holdingData &&
                         ((parseFloat(momentumData[firstIndex]) > 100 && parseFloat(momentumData[secondIndex]) > 100) ||
-                            (parseFloat(momentumData[firstIndex]) > 100 && parseFloat(momentumData[firstIndex]) > parseFloat(momentumData[secondIndex])))) {
+                            (parseFloat(momentumData[firstIndex]) > 100))) {
+
                         // handle .98 -> 100.01
 
                         //if(!holdingData) {
                         //console.log(':/', firstIndex, secondIndex, thirdIndex, momentumData[firstIndex], momentumData[secondIndex], momentumData[thirdIndex])
                         ++orderCount;
                         // buy holding
+                        fee = tradeAmountCoin * data.price * feeRate
+                        totalFees = parseFloat(totalFees) + parseFloat(fee);
+                        //console.log('FEE', fee);
+                        //process.exit(1);
 
-                        console.log('[̲̅$̲̅(̲̅' + (data.price * tradeAmountCoin).toFixed(3) + ')̲̅$̲̅]', '$' + data.price, momentum);
+                        console.log('[̲̅$̲̅(̲̅' + (data.price * tradeAmountCoin).toFixed(3) + ')̲̅$̲̅]', '$' + data.price, momentum, '$' + fee);
                         //let price = parseFloat(((parseFloat(data.price) * 0.1) / 1) + .1).toFixed(2);
                         //fix.placeOrder('buy', 'limit', 0.1, 'LTC-USD', false, price)
                         fix.placeOrder('buy', 'market', tradeAmountCoin, 'LTC-USD', false)
@@ -142,8 +183,8 @@ ws.on('message', data => {
                         //           parseFloat(momentumData[firstIndex]) < parseFloat(momentumData[secondIndex]) &&
                         //           parseFloat(momentumData[secondIndex]) < parseFloat(momentumData[thirdIndex]))) {
 
-                    } else if ((holdingData && (profit > fee + 0.1)) ||
-                        (holdingData && parseFloat(momentumData[firstIndex]) < 100 && profit < -0.1)) {
+                    } else if ((holdingData && (profit >= profitTarget)) ||
+                        (holdingData && parseFloat(momentumData[firstIndex]) < 100 && profit <= stopLoss)) {
                         //} else if(parseFloat(momentumData[firstIndex]) < parseFloat(momentumData[secondIndex])) {
 
                         //if(holdingData) {
@@ -152,13 +193,20 @@ ws.on('message', data => {
                         // sell holding
                         //let change = data.Price - holdingData.price;
 
-                        totalProfit = totalProfit + profit - fee;
+                        totalProfit = totalProfit + profit;
+                        fee = tradeAmountCoin * data.price * feeRate
+                        totalFees = parseFloat(totalFees) + parseFloat(fee);
+                        ++orderCount;
                         //if(profit > fee) {
 
-                        if (profit > fee + 0.1) {
-                            console.log('(•◡•)', '$' + data.price, momentum, '$' + holdingData.price, profit, fee, totalProfit, orderCount)
+                        if (profit >= profitTarget) {
+                            ++winners
+                            //console.log('(•◡•)', '$' + data.price, momentum, '$' + holdingData.price, profit, fee, totalFees, totalProfit, orderCount, winners, losers)
+                            console.log('SELL (•◡•)', data.price, profit, fee);
                         } else {
-                            console.log('(ಠ_ಠ)', '$' + data.price, momentum, '$' + holdingData.price, profit, fee, totalProfit, orderCount)
+                            ++losers
+                            console.log('SELL (ಠ_ಠ)', data.price, profit, fee);
+                            //console.log('', '$' + data.price, momentum, '$' + holdingData.price, profit, fee, totalFees, totalProfit, orderCount, winners, losers)
                         }
                         //console.log('Sell', data.price, holdingData.price, profit, fee, totalProfit, orderCount);
                         //let price = parseFloat(((parseFloat(data.price) * 0.1) / 1) - .2).toFixed(2);
@@ -174,16 +222,21 @@ ws.on('message', data => {
                         //    console.log(':/ Dont Sell', profit, fee);
                         //}
                         //}
-                    } else if (holdingData && (profit <= fee + 0.1)) {
+                    } else if (holdingData && (profit < profitTarget)) {
                         if (momentum > 100) {
-                            console.log(':)', '$' + data.price, momentum, '$' + holdingData.price, profit, fee, totalProfit, orderCount)
+                            //console.log(':)', momentum, '$' + data.price.toFixed(2),'$' + holdingData.price, stopLoss, profitTarget, profit, totalFees, totalProfit - totalFees, orderCount, winners, losers)
+                            console.log(':)', momentum, '$' + data.price, '$' + holdingData.price, profit, stopLoss, profitTarget, totalProfit - totalFees, orderCount, winners, losers)
                         } else if (momentum === 100) {
-                            console.log(':|', '$' + data.price, momentum, '$' + holdingData.price, profit, fee, totalProfit, orderCount)
+                            //console.log(':|', '$' + data.price, momentum, '$' + holdingData.price, stopLoss, profitTarget, profit, totalFees, totalProfit - totalFees, orderCount, winners, losers)
+                            console.log(':|', momentum, '$' + data.price, '$' + holdingData.price, profit, stopLoss, profitTarget, totalProfit - totalFees, orderCount, winners, losers)
+
                         } else if (momentum < 100) {
-                            console.log(':(', '$' + data.price, momentum, '$' + holdingData.price, profit, fee, totalProfit, orderCount)
+                            //console.log(':(', '$' + data.price, momentum, '$' + holdingData.price, stopLoss, profitTarget, profit, totalFees, totalProfit - totalFees, orderCount, winners, losers)
+                            console.log(':(', momentum, '$' + data.price, '$' + holdingData.price, profit, stopLoss, profitTarget, totalProfit - totalFees, orderCount, winners, losers)
+
                         }
                     } else {
-                        console.log('¯_(ツ)_/¯', '$' + data.price, momentum, '$' + holdingData.price, profit, fee, totalProfit, orderCount)
+                        console.log('¯_(ツ)_/¯', momentum, '$' + data.price, '$' + holdingData.price)
                     }
                 }
             }

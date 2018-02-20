@@ -14,6 +14,7 @@
     "csvtojson": "^1.1.9",
     "download": "^6.2.5",
     "file-system": "^2.2.2",
+    "forever": "^0.15.3",
     "gdax": "^0.5.1",
     "google-spreadsheet": "^2.0.3",
     "google-trends-api": "^4.4.0",
