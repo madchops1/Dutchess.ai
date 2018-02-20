@@ -3,6 +3,7 @@
  ( o.o )
   > ^ <
 DUTCHESS.AI - "SUPER TIGER"
+- Rotating Momentum Trader...
 - Streams BTC, ETH, LTC forever
 - Calculates momentum for each using rate of change between tick + delay
 - Determines leader
@@ -10,29 +11,29 @@ DUTCHESS.AI - "SUPER TIGER"
 - Sells all of current position
 */
 
-let secrets             = require('./config/secrets.json');
-const async             = require('async');
-const moment            = require('moment');
-const json2csv          = require('json2csv');
-const sleep             = require('sleep');
-const args              = process.argv.slice(2);
+let secrets = require('./config/secrets.json');
+const async = require('async');
+const moment = require('moment');
+const json2csv = require('json2csv');
+const sleep = require('sleep');
+const args = process.argv.slice(2);
 
 // Dutchess dependencies
-const sms               = require('./lib/sms.js');
-const fix               = require('./lib/fix.js');
+const sms = require('./lib/sms.js');
+const fix = require('./lib/fix.js');
 
 // AWS dependencies
-const AWS               = require('aws-sdk');
-const uuid              = require('node-uuid');
+const AWS = require('aws-sdk');
+const uuid = require('node-uuid');
 
 // Google trends
-const googleTrends      = require('google-trends-api');
+const googleTrends = require('google-trends-api');
 
 // Gdax
-const Gdax              = require('gdax');
+const Gdax = require('gdax');
 
 let test = false;
-if(args[0] === 'test') { test = true; }
+if (args[0] === 'test') { test = true; }
 
 // Machine Learning 
 //const sagemaker = new AWS.SageMaker();
@@ -53,7 +54,7 @@ function createWebsocket(test, coin) {
 
     let wsUrl = 'wss://ws-feed.gdax.com';
 
-    if(test) {
+    if (test) {
         secrets.gDaxApiKey = secrets.gDaxSandboxApiKey;
         secrets.gDaxApiSecret = secrets.gDaxSandboxApiSecret;
         secrets.gDaxPassphrase = secrets.gDaxSandboxPassphrase;
@@ -74,9 +75,9 @@ function createWebsocket(test, coin) {
 
 let priceStack = [0.0];
 let json = [];
-const wsBtc = createWebsocket(test,['BTC-USD']);
-const wsEth = createWebsocket(test,['ETH-USD']);
-const wsLtc = createWebsocket(test,['LTC-USD']);
+const wsBtc = createWebsocket(test, ['BTC-USD']);
+const wsEth = createWebsocket(test, ['ETH-USD']);
+const wsLtc = createWebsocket(test, ['LTC-USD']);
 
 var params = {
     NotebookInstanceName: 'Dutchess-Tiger-Sage',
@@ -126,57 +127,57 @@ function momentumLeader() {
     let mArray = [
         { coin: "BTC-USD", value: parseFloat(btcM) },
         { coin: "ETH-USD", value: parseFloat(ethM) },
-        { coin: "LTC-USD", value: parseFloat(ltcM) } ];
+        { coin: "LTC-USD", value: parseFloat(ltcM) }];
 
-    if(btcM !== ethM && btcM !== ltcM) {
+    if (btcM !== ethM && btcM !== ltcM) {
 
-        mArray = mArray.sort(function(a, b) {
+        mArray = mArray.sort(function (a, b) {
             return b.value - a.value;
         });
         //console.log(mArray);
         lastLeader = leader;
         leader = mArray[0].coin;
         //if(mArray[0].value > 100) {
-            placeOrder();
+        placeOrder();
         //}
     }
 }
 
 function placeOrder() {
 
-    if(lastLeader && leader !== lastLeader) {
-        
-        
+    if (lastLeader && leader !== lastLeader) {
+
+
         lastHolding = holding;
 
-        if(leader == 'BTC-USD') {
+        if (leader == 'BTC-USD') {
             //console.log(btc);
             holding = btc;
-        } else if(leader == 'LTC-USD') {
+        } else if (leader == 'LTC-USD') {
             //console.log(ltc);
             holding = ltc;
-        } else if(leader == 'ETH-USD') {
+        } else if (leader == 'ETH-USD') {
             //console.log(eth);
             holding = eth;
         }
 
 
-        
+
         let diff = 0;
 
-        if(lastLeader == 'BTC-USD') {
+        if (lastLeader == 'BTC-USD') {
             diff = btc.price - lastHolding.price;
-        } else if(lastLeader == 'ETH-USD') {
+        } else if (lastLeader == 'ETH-USD') {
             //console.log(ltc);
             diff = eth.price - lastHolding.price;
-        } else if(lastLeader == 'LTC-USD') {
+        } else if (lastLeader == 'LTC-USD') {
             //console.log(eth);
             diff = ltc.price - lastHolding.price;
         }
-        
+
         let lastHoldingPercentage = tradeAmount / lastHolding.price
         let profit = diff * lastHoldingPercentage;
-        if(!isNaN(profit)) {
+        if (!isNaN(profit)) {
             totalProfit = (parseFloat(totalProfit) + parseFloat(profit));
         }
         ++orderCount;
@@ -200,26 +201,26 @@ function placeOrder() {
 
     } else {
         console.log('Let it ride...', 'LST:' + lastLeader, 'LDR:' + leader)
-    }    
+    }
 
 }
 
 wsBtc.on('message', data => {
     //
-    if(data.type === 'ticker') {
+    if (data.type === 'ticker') {
 
         ++bT;
 
         //process.stdout.write(dots+bT+'\r');
         dots += '.';
 
-        if((bT % delay) == 0 || bT < 3|| bT == (delay+1)) {
+        if ((bT % delay) == 0 || bT < 3 || bT == (delay + 1)) {
             dots = '';
             btc = data;
-            if(lastBtc) {
-                btcM = parseFloat((parseFloat(data.price)/parseFloat(lastBtc.price)) * 100).toFixed(2);
+            if (lastBtc) {
+                btcM = parseFloat((parseFloat(data.price) / parseFloat(lastBtc.price)) * 100).toFixed(2);
                 console.log('Btc:', btcM, parseFloat(data.price));
-                if(btcM >= 100) {
+                if (btcM >= 100) {
                     momentumLeader();
                 }
 
@@ -276,7 +277,7 @@ wsBtc.on('message', data => {
         console.log('data',data, p, lp);
         console.log('');
         */
-        
+
 
     }
 });
@@ -284,19 +285,19 @@ wsBtc.on('message', data => {
 
 wsEth.on('message', data => {
     //
-    if(data.type === 'ticker') {
+    if (data.type === 'ticker') {
 
         ++eT;
         //process.stdout.write(dots+bT+'\r');
         dots += '.';
 
-        if((eT % delay) == 0 || eT < 3 || eT == (delay+1)) {
+        if ((eT % delay) == 0 || eT < 3 || eT == (delay + 1)) {
             dots = '';
             eth = data;
-            if(lastEth) {
-                ethM = parseFloat((parseFloat(data.price)/parseFloat(lastEth.price)) * 100).toFixed(2);
+            if (lastEth) {
+                ethM = parseFloat((parseFloat(data.price) / parseFloat(lastEth.price)) * 100).toFixed(2);
                 console.log('Eth:', ethM, parseFloat(data.price));
-                if(ethM >= 100) {
+                if (ethM >= 100) {
                     momentumLeader();
                 }
             }
@@ -312,22 +313,22 @@ wsEth.on('message', data => {
 
 wsLtc.on('message', data => {
     //
-    if(data.type === 'ticker') {
+    if (data.type === 'ticker') {
 
         ++lT;
         //process.stdout.write(dots+bT+'\r');
         dots += '.';
 
-        if((lT % delay) == 0 || lT < 3 || lT == (delay+1)) {
+        if ((lT % delay) == 0 || lT < 3 || lT == (delay + 1)) {
             dots = '';
             //console.log('lT',lT,lT/20,(lT%delay));
 
             //console.log(data);
             ltc = data;
-            if(lastLtc) {
-                ltcM = parseFloat((parseFloat(data.price)/parseFloat(lastLtc.price)) * 100).toFixed(2);
+            if (lastLtc) {
+                ltcM = parseFloat((parseFloat(data.price) / parseFloat(lastLtc.price)) * 100).toFixed(2);
                 console.log('LTC:', ltcM, parseFloat(data.price));
-                if(ltcM >= 100) {
+                if (ltcM >= 100) {
                     momentumLeader();
                 }
             }
@@ -340,7 +341,7 @@ wsLtc.on('message', data => {
 
 
 wsBtc.on('error', err => {
-    console.log('error',err);
+    console.log('error', err);
 
 });
 
@@ -349,7 +350,7 @@ wsBtc.on('close', () => {
 });
 
 wsEth.on('error', err => {
-    console.log('error',err);
+    console.log('error', err);
 
 });
 
@@ -358,7 +359,7 @@ wsEth.on('close', () => {
 });
 
 wsLtc.on('error', err => {
-    console.log('error',err);
+    console.log('error', err);
 
 });
 

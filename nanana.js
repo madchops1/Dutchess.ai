@@ -138,25 +138,44 @@ ws.on('message', data => {
                     crossOvers.shift();
                 }
 
-                console.log('Crossing Upwards', crossOvers);
+                let chunk = Math.ceil(tickerData.length / 3);
+                let chunkArray = [];
+                j = 0;
+                for (let k in tickerData) {
+                    let chunkIndex = Math.floor(k / chunk);
+                    if (!chunkArray[chunkIndex]) { chunkArray[chunkIndex] = []; }
+                    chunkArray[chunkIndex].push(tickerData[k]);
+                }
 
-                if (crossOvers.length >= 2) {
-                    if (crossOvers[crossOvers.length - 1] > crossOvers[crossOvers.length - 2]) {
+                let firstAvg = getArrayAvg(chunkArray[0]);
+                let secondAvg = getArrayAvg(chunkArray[1]);
+                let thirdAvg = getArrayAvg(chunkArray[2]);
 
-                        // 
-                        console.log('Upward Momentum Detected');
-                        //mode = 'trade'
+                //for (i = 0, j = tickerData.length; i < j; i += chunk) {
+                //    temparray = tickerData.slice(i, i + chunk);
+                //    // do whatever
+                //}
 
-                        // buy on upward crossover if no holding
-                        if (!holdingData) {
-                            ++orderCount;
-                            let fee = tradeAmountCoin * data.price * feeRate
-                            totalFees = parseFloat(totalFees) + parseFloat(fee);
-                            console.log('BUY');
-                            holdingData = data;
-                        }
+                console.log('Crossing Upwards', firstAvg, secondAvg, thirdAvg);
+
+                //if (crossOvers.length >= 2) {
+                //    if (crossOvers[crossOvers.length - 1] > crossOvers[crossOvers.length - 2]) {
+
+                if (thirdAvg > secondAvg) {
+                    console.log('Upward Momentum Detected');
+                    //mode = 'trade'
+
+                    // buy on upward crossover if no holding
+                    if (!holdingData) {
+                        ++orderCount;
+                        let fee = tradeAmountCoin * data.price * feeRate
+                        totalFees = parseFloat(totalFees) + parseFloat(fee);
+                        console.log('BUY');
+                        holdingData = data;
                     }
                 }
+                //    }
+                //}
 
             }
             // crossover down
@@ -164,8 +183,8 @@ ws.on('message', data => {
 
                 //holdingData && 
                 // sell
-                crossOvers.push(overallAvg);
-                console.log('Crossing Downwards', crossOvers);
+                //crossOvers.push(overallAvg);
+                console.log('Crossing Downwards');
 
                 //tickerData = [];
                 /*if (holdingData) {
