@@ -108,7 +108,7 @@ ws.on('message', data => {
             overallAvgs.push(overallAvg);
             currentAvgs.push(currentState);
 
-            console.log(currentState, overallAvg, currentAvgs[currentAvgs.length - 2], overallAvgs[overallAvgs.length - 2], profit, profitTarget, stopLoss, totalProfit - totalFees, orderCount, winners, losers);
+            //console.log(currentState, overallAvg, currentAvgs[currentAvgs.length - 2], overallAvgs[overallAvgs.length - 2], profit, profitTarget, stopLoss, totalProfit - totalFees, orderCount, winners, losers);
 
             if (holdingData) {
                 //profit = (tradeAmount * data.price / holdingData.price) - tradeAmount
@@ -147,8 +147,9 @@ ws.on('message', data => {
                 //    temparray = tickerData.slice(i, i + chunk);
                 //    // do whatever
                 //}
-
-                console.log('Crossing Upwards', firstAvg, secondAvg, thirdAvg);
+                if ()
+                    console.log('Crossing Upwards', firstAvg, secondAvg, thirdAvg);
+                //console.log(currentState, overallAvg, currentAvgs[currentAvgs.length - 2], overallAvgs[overallAvgs.length - 2], profit, profitTarget, stopLoss, totalProfit - totalFees, orderCount, winners, losers);
 
                 //if (crossOvers.length >= 2) {
                 //    if (crossOvers[crossOvers.length - 1] > crossOvers[crossOvers.length - 2]) {

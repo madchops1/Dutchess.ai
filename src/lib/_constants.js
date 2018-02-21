@@ -1,4 +1,3 @@
-console.log(process.env.USER);
 let homeDir = '';
 if (process.env.USER == 'karlsteltenpohl') {
     homeDir = '/Users/karlsteltenpohl/Documents/workspace_karl/Dutchess.ai'
