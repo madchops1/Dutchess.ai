@@ -2,24 +2,23 @@
   /\_/\
  ( o.o )
   > ^ <
-DUTCHESS.AI - "PUSS"
+DUTCHESS.AI - "NANANA"
 - Streams BTC or ETH or LTC forever
 - Calculates momentum between ticks
 - when we get x positive momentum reads buy in
 - then wait until we get x down tick b4 selling
 forever start -o ~/Dutchess.ai/.tmp/nanana.out.log -e ~/Dutchess.ai/.tmp/nanana.err.log nanana.js
-*/
-let secrets = require('./config/secrets.json');
-const async = require('async');
-const moment = require('moment');
-const json2csv = require('json2csv');
-const sleep = require('sleep');
-const args = process.argv.slice(2);
 
-// Dutchess dependencies
-const sms = require('./lib/sms.js');
-const fix = require('./lib/fix.js');
-const sunny = require('./lib/sunny.js');
+NOTES:
+Nanana is the current prod momentum algo trader. The 3rd iteration of my algo traders
+*/
+
+const constants = require('./lib/_constants.js');
+const secrets = require(constants.CONFIG + '/secrets.json');
+const moment = require('moment');
+const args = process.argv.slice(2);
+const sms = require(constants.LIB + '/sms.js');
+const fix = require(constants.LIB + '/fix.js');
 
 // AWS dependencies
 const AWS = require('aws-sdk');
@@ -34,35 +33,29 @@ if (args[0] === 'test') { test = true; }
 let tickerData = [];
 let overallAvgs = [];
 let currentAvgs = [];
-
-//let momentumData = [];
 let holdingData = false;
 let count = 0;
 let totalProfit = 0;
 let profit = 0;
+let stopLoss = 0;
+let profitTarget = 0;
+let feeRate = 0.003;
+let totalFees = 0;
+let winners = 0;
+let losers = 0;
+let orderCount = 0;
 
 // Dials
 let coin = ['LTC-USD'];
 let currency = 'LTC';
 let tradeAmountCoin = 0.1;
-
-// should the delay dynamically change?
 let risk = 0.01;
-//let riskAmount = 0;
-//let usdAccountValue = 0;
 let targetRatio = 3; // 3:risk
 let target = risk * targetRatio;
-let stopLoss = 0;
-let profitTarget = 0;
-let feeRate = 0.003;
-let totalFees = 0;
+let ticks = 1440;
 
-let winners = 0;
-let losers = 0;
 // should I alter the risk and target based on the winner:loser ration
 
-let orderCount = 0;
-let ticks = 1440;
 //var buyDelay = 3; // 9
 //let delay = buyDelay;
 //let sellDelay = 1; // 3
@@ -114,7 +107,6 @@ ws.on('message', data => {
             // then push em 
             overallAvgs.push(overallAvg);
             currentAvgs.push(currentState);
-
 
             console.log(currentState, overallAvg, currentAvgs[currentAvgs.length - 2], overallAvgs[overallAvgs.length - 2], profit, profitTarget, stopLoss, totalProfit - totalFees, orderCount, winners, losers);
 

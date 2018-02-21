@@ -1,3 +1,5 @@
+import { request } from 'https';
+
 /*
   /\_/\
  ( o.o )
@@ -9,8 +11,18 @@ DUTCHESS.AI - "PUSS"
 - then wait until we get x down tick b4 selling
 
 forever start -o ~/Dutchess.ai/.tmp/puss.out.log -e ~/Dutchess.ai/.tmp/puss.err.log puss.js
+
+NOTES:
+Puss is a momentum trading algo. It waits a set number of ticks on the buy side
+and then it runs every tick on the sell side.
+
+The upwards momentum trigger is not very smart here
+
+This has been run in production but needs improvement and backtesting.
 */
-let secrets = require('./config/secrets.json');
+
+const constants = require('./lib/_constants.js');
+let secrets = require(constants.CONFIG + '/secrets.json');
 const async = require('async');
 const moment = require('moment');
 const json2csv = require('json2csv');
@@ -18,8 +30,8 @@ const sleep = require('sleep');
 const args = process.argv.slice(2);
 
 // Dutchess dependencies
-const sms = require('./lib/sms.js');
-const fix = require('./lib/fix.js');
+const sms = require(constants.LIB + '/sms.js');
+const fix = require(constants.LIB + '/fix.js');
 
 // AWS dependencies
 const AWS = require('aws-sdk');

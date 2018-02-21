@@ -6,9 +6,13 @@ DUTCHESS.AI - "BELLA"
 Backtest Data Getter
 - Runs whenever you want to generate backtest tick data
 - Works with LTC, BTC, and ETH
+
+NOTES:
+Bella gets and saves backtest tick data
 */
 
-const secrets = require('./config/secrets.json');
+const constants = require('./lib/_constants.js');
+const secrets = require(constants.CONFIG + '/secrets.json');
 const Gdax = require('gdax');
 const fs = require('fs');
 
@@ -17,7 +21,7 @@ let json = '';
 // Dials
 let coin = ['LTC-USD'];
 let currency = 'LTC';
-let filePath = './.tmp/' + currency + '.backtestTickData.json';
+let filePath = constants.TMP + '/' + currency + '.backtestTickData.json';
 
 fs.writeFile(filePath, json, 'utf8', function (err, data) {
     if (err) { console.log(err); }

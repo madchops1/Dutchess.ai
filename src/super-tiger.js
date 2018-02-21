@@ -9,9 +9,13 @@ DUTCHESS.AI - "SUPER TIGER"
 - Determines leader
 - Buys x amount of the leader
 - Sells all of current position
+
+NOTES:
+This program is an experiment. This is not production viable.
 */
 
-let secrets = require('./config/secrets.json');
+const constants = require('./lib/_constants.js');
+let secrets = require(constants.CONFIG + '/secrets.json');
 const async = require('async');
 const moment = require('moment');
 const json2csv = require('json2csv');
@@ -19,8 +23,8 @@ const sleep = require('sleep');
 const args = process.argv.slice(2);
 
 // Dutchess dependencies
-const sms = require('./lib/sms.js');
-const fix = require('./lib/fix.js');
+const sms = require(constants.LIB + '/sms.js');
+const fix = require(constants.LIB + '/fix.js');
 
 // AWS dependencies
 const AWS = require('aws-sdk');

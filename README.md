@@ -60,6 +60,8 @@ for more information.
     node princess.js
     node tiger.js
     node super-tiger.js
+    node puss.js
+    node nanana.js
 
 ## AWS Resources
 https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/MachineLearning.html#predict-property

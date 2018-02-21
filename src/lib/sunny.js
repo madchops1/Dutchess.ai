@@ -7,6 +7,7 @@ Solar Power
 */
 
 // Dependencies
+const constants = require('./_constants.js');
 var json2csv = require('json2csv');
 var async = require('async');
 var moment = require('moment');
@@ -16,14 +17,14 @@ var clone = require('clone');
 var scraperjs = require('scraperjs');
 var GoogleSpreadsheet = require('google-spreadsheet');
 var Mailchimp = require('mailchimp-api-v3');
-var secrets = require('../config/secrets.json');
+var secrets = require(constants.CONFIG + '/secrets.json');
 var args = process.argv.slice(2);
 const request = require("request");
 const fs = require('fs');
 const download = require('download');
 const csv = require('csvtojson')
 
-const csvFilePath = '../.tmp/sunspots.csv'
+const csvFilePath = constants.TMP + '/sunspots.csv'
 let solarJson = [];
 let spots = 0;
 

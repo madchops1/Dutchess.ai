@@ -1,7 +1,14 @@
 /*
+  /\_/\
+ ( o.o )
+  > ^ <
 DUTCHESS.AI - GDAX FIX TRADE MODULE
+- placeOrder
+- getAccountValue
 */
-let secrets = require('../config/secrets.json');
+
+const constants = require('./_constants.js')
+let secrets = require(constants.CONFIG + '/secrets.json');
 const request = require("request");
 const Gdax = require('gdax');
 

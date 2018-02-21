@@ -1,6 +1,5 @@
 .DS_Store
 node_modules
-sheetsClientSecret.json
-secrets.json
 .tmp/*
 config/*
+deploy-secrets.sh
