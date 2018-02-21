@@ -7,6 +7,7 @@ DUTCHESS.AI - "PUSS"
 - Calculates momentum between ticks
 - when we get x positive momentum reads buy in
 - then wait until we get x down tick b4 selling
+forever start -o ~/Dutchess.ai/.tmp/nanana.out.log -e ~/Dutchess.ai/.tmp/nanana.err.log nanana.js
 */
 let secrets = require('./config/secrets.json');
 const async = require('async');
@@ -61,7 +62,7 @@ let losers = 0;
 // should I alter the risk and target based on the winner:loser ration
 
 let orderCount = 0;
-let ticks = 144;
+let ticks = 1440;
 //var buyDelay = 3; // 9
 //let delay = buyDelay;
 //let sellDelay = 1; // 3
