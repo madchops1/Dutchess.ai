@@ -1,0 +1,41 @@
+Step 1: Authenticated Google Sheets
+Step 2: Get Sheet Successful, 975 rows
+Step 3: Get Latest Row Data Successful, 2018-01-24
+Step 4.1: Get Contract Successful, QMH2018
+Step 4.2: Get Missing Historical Data Successful
+Step 5: Push Missing Data To Sheet Successful
+Step 6: Authenticate Updated Sheet
+Step 7: Get Updated Sheet Successful, 975 rows
+Step 8: Get All Rows Successfull, 01/24/2018, high: 66.05, low: 64.325, midPoint: 65.1875
+Step 9: Convert Data To CSV Successfull
+Step 10: Successfully Uploaded Data To dutchess-princess/data-2018-01-25.csv
+Step 11: Create Testing Datasource Successfull
+Step 12: Create Evaluation Datasource Successfull
+Step 13: Create Machine Learning Model Successfull
+Step 14: Machine Learning Model is PENDING, waiting 30 sec...
+Step 14: Machine Learning Model is PENDING, waiting 30 sec...
+Step 14: Machine Learning Model is PENDING, waiting 30 sec...
+Step 14: Machine Learning Model is PENDING, waiting 30 sec...
+Step 14: Machine Learning Model is PENDING, waiting 30 sec...
+Step 14: Machine Learning Model is PENDING, waiting 30 sec...
+Step 14: Machine Learning Model is PENDING, waiting 30 sec...
+Step 14: Machine Learning Model is PENDING, waiting 30 sec...
+Step 14: Machine Learning Model is INPROGRESS, waiting 30 sec.SteStep 14: Machine Learning Model is INPROGRESS, waiting 30 sec.SteStep 14: Machine Learning Model is INPROGRESS, waiting 30 sec.SteStep 14: Machine Learning Model is INPROGRESS, waiting 30 sec.SteStep 14: Machine Learning Model is INPROGRESS, waiting 30 sec.SteStep 14: Machine Learning Model Status: COMPLETSteStep 14: Realtime Prediction Endpoint Created SuccessfulSteStep 15: Endpoint is UPDATING, waiting 30 sec.SteStep 15: Predict Binary Change Direction Successful, Downwards
+Step 16: Trading, TODO.Step 17.1: Create Campaign Successful
+SteStep 17.2: Put Campaign Content Successful
+{ Error: This campaign cannot be tested:" Too many tests sent in a 24 hour period for your account"
+    at Request._callback (/home/ec2-user/Dutchess.ai/node_modules/mailchimp-api-v3/index.js:506:30)
+    at Request.self.callback (/home/ec2-user/Dutchess.ai/node_modules/request/request.js:186:22)
+    at Request.emit (events.js:160:13)
+    at Request.<anonymous> (/home/ec2-user/Dutchess.ai/node_modules/request/request.js:1163:10)
+    at Request.emit (events.js:160:13)
+    at IncomingMessage.<anonymous> (/home/ec2-user/Dutchess.ai/node_modules/request/request.js:1085:12)
+    at Object.onceWrapper (events.js:255:19)
+    at IncomingMessage.emit (events.js:165:20)
+    at endReadableNT (_stream_readable.js:1101:12)
+    at process._tickCallback (internal/process/next_tick.js:152:19)
+  type: 'http://developer.mailchimp.com/documentation/mailchimp/guides/error-glossary/',
+  title: 'Bad Request',
+  status: 400,
+  detail: 'This campaign cannot be tested:" Too many tests sent in a 24 hour period for your account"',
+  instance: '3b96b0b5-a4e2-40b8-b7d1-d9ee0239b3b1' }

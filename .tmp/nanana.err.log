@@ -1,0 +1,21 @@
+/home/ec2-user/Dutchess.ai/nanana.js:297
+    for (var i = 0; i < elmt.length; i++) {
+                             ^
+
+TypeError: Cannot read property 'length' of undefined
+    at getArrayAvg (/home/ec2-user/Dutchess.ai/nanana.js:297:30)
+    at WebsocketClient.ws.on.data (/home/ec2-user/Dutchess.ai/nanana.js:152:32)
+    at WebsocketClient.emit (events.js:160:13)
+    at WebsocketClient.onMessage (/home/ec2-user/Dutchess.ai/node_modules/gdax/lib/clients/websocket.js:79:10)
+    at WebSocket.emit (events.js:160:13)
+    at Receiver._receiver.onmessage (/home/ec2-user/Dutchess.ai/node_modules/ws/lib/WebSocket.js:146:47)
+    at Receiver.dataMessage (/home/ec2-user/Dutchess.ai/node_modules/ws/lib/Receiver.js:389:14)
+    at Receiver.getData (/home/ec2-user/Dutchess.ai/node_modules/ws/lib/Receiver.js:330:12)
+    at Receiver.startLoop (/home/ec2-user/Dutchess.ai/node_modules/ws/lib/Receiver.js:165:16)
+    at Receiver.add (/home/ec2-user/Dutchess.ai/node_modules/ws/lib/Receiver.js:139:10)
+    at TLSSocket._ultron.on (/home/ec2-user/Dutchess.ai/node_modules/ws/lib/WebSocket.js:142:22)
+    at TLSSocket.emit (events.js:160:13)
+    at addChunk (_stream_readable.js:269:12)
+    at readableAddChunk (_stream_readable.js:256:11)
+    at TLSSocket.Readable.push (_stream_readable.js:213:10)
+    at TLSWrap.onread (net.js:599:20)
