@@ -16,42 +16,51 @@ const secrets = require(constants.CONFIG + '/secrets.json');
 const Gdax = require('gdax');
 const fs = require('fs');
 const uuid = require('node-uuid');
+const moment = require('moment');
 
 // Define
 let json = [];
 let count = 0;
+let date = moment().format("YYYY-MM-DD");
 
 // Knobs
 let coin = ['LTC-USD'];
 let currency = 'LTC';
-let filePath = constants.TMP + '/' + currency + '.tickers.' + uuid.v4() + '.json';
+let filePath = constants.TMP + '/backTestData/' + currency + '.tickers.' + date + '.' + uuid.v4() + '.json';
 let tickTarget = 10000;
 let body = '';
 
-const ws = createWebsocket(false, coin);
-ws.on('message', data => {
-    if (data.type === 'ticker') {
-        ++count
-        console.log(count);
-        json.push(data);
-        if (count >= tickTarget) {
-            body = JSON.stringify(json);
-            fs.writeFile(filePath, body, 'utf8', function (err, data) {
-                if (err) { console.log(err); }
-                console.log('DONE')
-                process.exit(1);
-            });
+instantiate();
+
+function instantiate() {
+    let ws = createWebsocket(false, coin);
+
+    ws.on('message', data => {
+        if (data.type === 'ticker') {
+            ++count
+            console.log(count);
+            json.push(data);
+            if (count >= tickTarget) {
+                body = JSON.stringify(json);
+                fs.writeFile(filePath, body, 'utf8', function (err, data) {
+                    if (err) { console.log(err); }
+                    console.log('DONE')
+                    process.exit(1);
+                });
+            }
         }
-    }
-});
+    });
 
-ws.on('error', err => {
-    console.log('error', err);
-});
+    ws.on('error', err => {
+        console.log('error', err);
+    });
 
-ws.on('close', () => {
-    console.log('close');
-});
+    ws.on('close', () => {
+        console.log('close');
+        delete ws;
+        instantiate();
+    });
+}
 
 function createWebsocket(test, coin) {
     let wsUrl = 'wss://ws-feed.gdax.com';

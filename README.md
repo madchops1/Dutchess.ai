@@ -1,44 +1,11 @@
 
 # Dutchess.ai
 
-  /\_/\   A suite of nodejs black boxes for machine learning and automated trading. All named after cats.
- ( o.o )  01001001  01110111 01100001 01101110 01110100  01101001 01110100 
-  > ^ <   01101101 01100101 01101111 01110111      
+A suite of nodejs black boxes for machine learning and automated trading. All named after cats.
 
 ## Get Started
 
     npm install
-
-## Secrets
-
-### secrets.json
-{
-    "GoogleSheetId": "XXXXXXXXXXX",
-    "BucketName": "XXXXXXXXXXX",
-    "TigerBucketName": "XXXXXXXXXXX",
-    "TigerSheetId": "XXXXXXXXXXXXXXXXXXXXXX",
-    "QuandlApiKey": "XXXXXXXXXXX",
-    "MailchimpApiKey": "XXXXXXXXXXX-us7",
-    "MailchimpListId": "XXXXXXXXXXX",
-    "CoinbaseApiKey": "XXXXXXXXXXX",
-    "CoinbaseApiSecret": "XXXXXXXXXXX",
-    ...
-}
-
-### sheetsClientSecret.json
-{
-    "type": "service_account",
-    "project_id": "XXXXXXXXXXX",
-    "private_key_id": "XXXXXXXXXXX",
-    "private_key": "XXXXXXXXXXX",
-    "client_email": "XXXXXXXXXXX",
-    "client_id": "XXXXXXXXXXX",
-    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://accounts.google.com/o/oauth2/token",
-    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-    "client_x509_cert_url": "XXXXXXXXXXX",
-    ...
-}
 
 ## AWS Configuration
 
@@ -77,5 +44,36 @@ http://apiforums.tdameritrade.com/tda-board/ubbthreads.php
 - momentum 3 pick, drop when not picked again, keep rolling
 - breakout after resistance or support
 - ...
+
+## Secrets
+
+### config/secrets.json
+{
+    "GoogleSheetId": "XXXXXXXXXXX",
+    "BucketName": "XXXXXXXXXXX",
+    "TigerBucketName": "XXXXXXXXXXX",
+    "TigerSheetId": "XXXXXXXXXXXXXXXXXXXXXX",
+    "QuandlApiKey": "XXXXXXXXXXX",
+    "MailchimpApiKey": "XXXXXXXXXXX-us7",
+    "MailchimpListId": "XXXXXXXXXXX",
+    "CoinbaseApiKey": "XXXXXXXXXXX",
+    "CoinbaseApiSecret": "XXXXXXXXXXX",
+    ...
+}
+
+### config/sheetsClientSecret.json
+{
+    "type": "service_account",
+    "project_id": "XXXXXXXXXXX",
+    "private_key_id": "XXXXXXXXXXX",
+    "private_key": "XXXXXXXXXXX",
+    "client_email": "XXXXXXXXXXX",
+    "client_id": "XXXXXXXXXXX",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://accounts.google.com/o/oauth2/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "XXXXXXXXXXX",
+    ...
+}
 
 
