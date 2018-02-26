@@ -29,6 +29,7 @@ for more information.
     node super-tiger.js
     node puss.js
     node nanana.js
+    node randy.js
 
 ## AWS Resources
 https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/MachineLearning.html#predict-property
