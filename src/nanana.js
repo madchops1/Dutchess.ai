@@ -21,16 +21,18 @@ const sms = require(constants.LIB + '/sms.js');
 const fix = require(constants.LIB + '/fix.js');
 //const backtestTicks = require(constants.TMP + '/LTC.tickers.0153f8b2-ebf6-459f-8d30-d8607f10ce01.json');
 const backtestTicks = require(constants.TMP + '/backTestData/LTC.tickers.ecd8775b-c35a-4fd9-8567-eba184574b54.json');
-
-// AWS dependencies
 const AWS = require('aws-sdk');
 const uuid = require('node-uuid');
-
-// Gdax
 const Gdax = require('gdax');
+const GoogleSpreadsheet = require('google-spreadsheet');
+const sheetId = secrets.NananaSheetId;
+const async = require('async');
 
 let test = false;
 if (args[0] === 'test') { test = true; }
+
+let doc = new GoogleSpreadsheet(sheetId);
+let creds = require(constants.CONFIG + '/sheetsClientSecret.json');
 
 let tickerData = [];
 let overallAvgs = [];
@@ -46,6 +48,11 @@ let totalFees = 0;
 let winners = 0;
 let losers = 0;
 let orderCount = 0;
+let currentState = 0;
+let overallAvg = 0;
+let crossOvers = [];
+let date = moment();
+let sheet;
 
 // Dials
 let coin = ['LTC-USD'];
@@ -56,30 +63,73 @@ let targetRatio = 3; // 3:risk
 let target = risk * targetRatio;
 let ticks = 1440;
 
-// should I alter the risk and target based on the winner:loser ratio?
+async.series([
 
-let currentState = 0;
-let overallAvg = 0;
-let crossOvers = [];
-let date = moment();
+    // Step 1 Authenticate google sheets
+    function setAuth(step) {
+        console.log('Step 1: Authenticated Google Sheets');
+        doc.useServiceAccountAuth(creds, step);
+    },
 
-//const ws = createWebsocket(test, coin);
-//ws.on('message', data => {
-for (k in backtestTicks) {
-    data = backtestTicks[k];
-    //
-    //if (data.type === 'ticker') {
+    // Step 2 Get sheet
+    function getInfoAndWorksheets(step) {
+        doc.getInfo(function (err, info) {
+            sheet = info.worksheets[0];
+            console.log('Step 2: Get Sheet Successful, ' + sheet.rowCount + ' rows');
+            step();
+        });
+    },
+
+    // Step 3 Init and run socket
+    function init(step) {
+        if (test) {
+            initiateBackTest();
+        } else {
+            initiate();
+        }
+    }
+
+],
+    function (err) {
+        if (err) {
+            console.log('Error: ' + err);
+        }
+    }
+);
+
+function initiate() {
+    let ws = createWebsocket(test, coin);
+    ws.on('message', data => {
+        if (data.type === 'ticker') {
+            main(data);
+        }
+    });
+
+    ws.on('error', err => {
+        console.log('error', err);
+    });
+
+    ws.on('close', () => {
+        delete ws;
+        initiate();
+        console.log('close');
+    });
+}
+
+function initiateBackTest() {
+    for (k in backtestTicks) {
+        main(backtestTicks[k]);
+    }
+}
+
+function main(data) {
     ++count
-    console.log(count);
-
-    //if ((count % delay) == 0 || count == 1) {
+    //console.log(count);
 
     tickerData.push(data.price);
     if (tickerData.length > ticks) {
         tickerData.shift();
     }
-    //console.log('TICK');
-
 
     if (tickerData.length >= 3) {
         //console.log(tickerData);
@@ -115,7 +165,6 @@ for (k in backtestTicks) {
 
         // crossover up now state is over, last state is under
         if (currentState > overallAvg && currentAvgs[currentAvgs.length - 2] <= overallAvgs[overallAvgs.length - 2]) {
-
 
             crossOvers.push(overallAvg);
             if (crossOvers.length > 3) {
@@ -156,12 +205,21 @@ for (k in backtestTicks) {
                     let fee = tradeAmountCoin * data.price * feeRate
                     totalFees = parseFloat(totalFees) + parseFloat(fee);
                     console.log('BUY');
-                    fix.placeOrder('buy', 'market', tradeAmountCoin, coin[0], false)
-                        .then(function (dataa, err) {
-                            if (err) { console.log(err); }
-                            //console.log('buy', price, dataa, err);
+                    if (!test) {
+                        fix.placeOrder('buy', 'market', tradeAmountCoin, coin[0], false)
+                            .then(function (dataa, err) {
+                                if (err) { console.log(err); }
+                                //console.log('buy', price, dataa, err);
+                                let newRow = {
+                                    time: data.time,
+                                    price: data.price,
+                                    status: 'buy'
+                                };
 
-                        });
+                                sheet.addRow(newRow, function (err) { if (err) { console.log(err); } });
+
+                            });
+                    }
                     holdingData = data;
                 }
             }
@@ -209,11 +267,21 @@ for (k in backtestTicks) {
                     totalProfit = totalProfit + profit;
                     let fee = tradeAmountCoin * data.price * feeRate
                     totalFees = parseFloat(totalFees) + parseFloat(fee);
-                    fix.placeOrder('sell', 'market', tradeAmountCoin, coin[0], false)
-                        .then(function (dataa, err) {
-                            if (err) { console.log(err); }
-                            //console.log('sell', dataa, err);
-                        });
+                    if (!test) {
+                        fix.placeOrder('sell', 'market', tradeAmountCoin, coin[0], false)
+                            .then(function (dataa, err) {
+                                if (err) { console.log(err); }
+
+                                let newRow = {
+                                    time: data.time,
+                                    price: data.price,
+                                    status: 'sell',
+                                    totalProfit: totalProfit
+                                };
+
+                                sheet.addRow(newRow, function (err) { if (err) { console.log(err); } });
+                            });
+                    }
                     holdingData = false;
                     ++orderCount;
                     ++winners;
@@ -223,11 +291,21 @@ for (k in backtestTicks) {
                     totalProfit = totalProfit + profit;
                     let fee = tradeAmountCoin * data.price * feeRate
                     totalFees = parseFloat(totalFees) + parseFloat(fee);
-                    fix.placeOrder('sell', 'market', tradeAmountCoin, coin[0], false)
-                        .then(function (dataa, err) {
-                            if (err) { console.log(err); }
-                            //console.log('sell', dataa, err);
-                        });
+                    if (!test) {
+                        fix.placeOrder('sell', 'market', tradeAmountCoin, coin[0], false)
+                            .then(function (dataa, err) {
+                                if (err) { console.log(err); }
+
+                                let newRow = {
+                                    time: data.time,
+                                    price: data.price,
+                                    status: 'sell',
+                                    totalProfit: totalProfit
+                                };
+
+                                sheet.addRow(newRow, function (err) { if (err) { console.log(err); } });
+                            });
+                    }
                     holdingData = false;
                     ++orderCount;
                     ++losers;
@@ -245,38 +323,7 @@ for (k in backtestTicks) {
         }
 
     }
-
-
-    //}
-    //}
-    /*
-    { type: 'ticker',
-    sequence: 4986249486,
-    product_id: 'BTC-USD',
-    price: '9814.96000000',
-    open_24h: '10966.51000000',
-    volume_24h: '33184.8213776',
-    low_24h: '9814.96000000',
-    high_24h: '10999.00000000',
-    volume_30d: '634822.83077938',
-    best_bid: '9814.95',
-    best_ask: '9814.96',
-    side: 'buy',
-    time: '2018-01-31T04:53:38.721000Z',
-    trade_id: 35149878,
-    last_size: '0.14198936' }
-    */
-
-    //});
 }
-
-ws.on('error', err => {
-    console.log('error', err);
-});
-
-ws.on('close', () => {
-    console.log('close');
-});
 
 function getArrayAvg(elmt) {
     var sum = 0;
@@ -287,7 +334,6 @@ function getArrayAvg(elmt) {
     //console.log('AVG', avg)
     return avg;
 }
-
 
 function createWebsocket(test, coin) {
     let wsUrl = 'wss://ws-feed.gdax.com';
