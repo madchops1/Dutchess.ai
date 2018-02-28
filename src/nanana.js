@@ -80,7 +80,7 @@ let tradeAmountCoin = 0.1;
 let risk = 0.01;
 let targetRatio = 3; // 3:risk
 let target = risk * targetRatio;
-let ticks = 9; //999; //1440;
+let ticks = 333; //999; //1440;
 
 async.series([
 
