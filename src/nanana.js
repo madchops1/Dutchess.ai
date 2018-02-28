@@ -308,8 +308,8 @@ function main(data) {
                                     volume: holdingDataCopy.volume,
                                     lastSvl: holdingDataCopy.lastSvl,
                                     currentSvl: holdingDataCopy.currentSvl,
-                                    roc1: holdingData.roc1,
-                                    roc2: holdingData.roc2,
+                                    roc1: holdingDataCopy.roc1,
+                                    roc2: holdingDataCopy.roc2,
                                     status: 1
                                 };
                                 sheet.addRow(newRow, function (err) { if (err) { console.log(err); } });
