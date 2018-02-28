@@ -254,7 +254,7 @@ function main(data) {
                     holdingData.currentSvl = currentState - overallAvg;
                     holdingData.roc1 = parseFloat((parseFloat(thirdAvg) / parseFloat(secondAvg) * 100)).toFixed(3);
                     holdingData.roc2 = parseFloat((parseFloat(secondAvg) / parseFloat(firstAvg) * 100)).toFixed(3);
-                    GdaxClient.getProduct24HrStats('BTC-USD', function (err, response, stats) {
+                    GdaxClient.getProduct24HrStats(coin[0], function (err, response, stats) {
                         //console.log('24hourstat', stats);
                         holdingData.open = stats.open;
                         holdingData.high = stats.high;
