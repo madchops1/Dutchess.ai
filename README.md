@@ -24,12 +24,14 @@ for more information.
 
 ## Running the black boxes
 
-    node princess.js
-    node tiger.js
-    node super-tiger.js
-    node puss.js
-    node nanana.js
-    node randy.js
+    node princess.js - Oil Futures momentum predictor
+    node tiger.js - Machine learning bitcoin momentum predictor
+    node super-tiger.js - Rotating momentum algo trader v1
+    node puss.js -  Momentum algo trader v1
+    node nanana.js - Momentum algo trader v2
+    node randy.js -  RSI breackout aglo trader
+    node bella.js - Backtest tick data generator
+    
 
 ## AWS Resources
 https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/MachineLearning.html#predict-property
