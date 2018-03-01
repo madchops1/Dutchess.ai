@@ -2,26 +2,22 @@
   /\_/\
  ( o.o )
   > ^ <
-DUTCHESS.AI - "NANANA"
+DUTCHESS.AI - "VLAD"
 - Streams LTC
-- Calculates momentum using a long and short average crossover and rate of change method.
-- Takes the machine learning endpoint as a param for making decisions.
-- Buys when it determines upwards momentum via rate of change and crossing over upwards.
-- Adds to training data for machine learning component
+- Calculates moving volume avg
+- Calculates short term momentum
+- If there is an upward move in short term volume and momentum then buy 
+- If we are holding and the price registers short term downward momentum and/or another big volume then sell
+- Plug the results into a sheet
+- Run an ML model against the data and incorporate the prediction into the trading decision
 
 RUNNING THIS:
-forever start -o ~/Dutchess.ai/.tmp/nanana.out.log -e ~/Dutchess.ai/.tmp/nanana.err.log nanana.js
+forever start -o ~/Dutchess.ai/.tmp/vlad.out.log -e ~/Dutchess.ai/.tmp/vlad.err.log vlad.js
 
 NOTES:
-Nanana is the current prod momentum algo trader. The 3rd iteration of my algo traders
-I'm going to add some machine learning to the Nanana algo today 2/27/18
 
-Add the training data to the training sheet every sell
-Build another program that:
- 1. Kills the nanana.js script. Or nanana.js can kill itself after its last sell after a certian time
- 2. Retrains the machine learning models for nanana daily
- 3. Restarts the nanana.js script with the new endpoint
 */
+
 
 const constants = require('./lib/_constants.js');
 const secrets = require(constants.CONFIG + '/secrets.json');
@@ -34,20 +30,16 @@ const AWS = require('aws-sdk');
 const uuid = require('node-uuid');
 const Gdax = require('gdax');
 const GoogleSpreadsheet = require('google-spreadsheet');
-const sheetId = secrets.NananaSheetId;
+const sheetId = secrets.VladSheetId;
 const trainingSheetId = secrets.NananaMlSheetId;
 const async = require('async');
 
-//const backtestTicks = require(constants.TMP + '/LTC.tickers.0153f8b2-ebf6-459f-8d30-d8607f10ce01.json');
-const backtestTicks = require(constants.TMP + '/backTestData/LTC.tickers.ecd8775b-c35a-4fd9-8567-eba184574b54.json');
-
-let test = false;
-
 let doc = new GoogleSpreadsheet(sheetId);
-let trainingDoc = new GoogleSpreadsheet(trainingSheetId);
+//let trainingDoc = new GoogleSpreadsheet(trainingSheetId);
 let creds = require(constants.CONFIG + '/sheetsClientSecret.json');
 
-let tickerData = [];
+let priceData = [];
+let volData = [];
 let overallAvgs = [];
 let currentAvgs = [];
 let holdingData = false;
@@ -62,8 +54,8 @@ let totalFees = 0;
 let winners = 0;
 let losers = 0;
 let orderCount = 0;
-let currentState = 0;
-let overallAvg = 0;
+let shortAvg = 0;
+let longAvg = 0;
 let crossOvers = [];
 let date = moment();
 let sheet;
@@ -80,45 +72,28 @@ let tradeAmountCoin = 0.1;
 let risk = 0.01;
 let targetRatio = 3; // 3:risk
 let target = risk * targetRatio;
-let ticks = 333; //999; //1440;
+let ticks = 9; //999; //1440;
 
 async.series([
 
-    // Step 1 Config
+    // Step 1 Config, test, endpoint, gdax client, sheets auth
     function config(step) {
         if (args[0] === 'test') { test = true; }
-        if (args[0] === 'endpoint') { realTimeEndpoint = args[1]; }
+        //if (args[0] === 'endpoint') { realTimeEndpoint = args[1]; }
         console.log('Step 1: Config', test, realTimeEndpoint);
         GdaxClient = authedClient(test);
-        step();
-    },
-
-    // Step 2 Authenticate google sheets
-    function setAuth(step) {
-        console.log('Step 2.1: Authenticated Log Sheet');
         doc.useServiceAccountAuth(creds, step);
     },
 
-    function setTrainingAuth(step) {
-        console.log('Step 2.2: Authenticated Training Sheet');
-        trainingDoc.useServiceAccountAuth(creds, step);
-    },
+    //function setTrainingAuth(step) {
+    //    console.log('Step 2.1: Authenticated Training Sheet');
+    //    trainingDoc.useServiceAccountAuth(creds, step);
+    //},
 
     // Step 3 Get sheet
     function getInfoAndWorksheets(step) {
         doc.getInfo(function (err, info) {
-            if (err) { console.log(err) }
             sheet = info.worksheets[0];
-            console.log('Step 2.3: Got Log Sheet');
-            step();
-        });
-    },
-
-    function getTrainingInfoAndWorksheets(step) {
-        trainingDoc.getInfo(function (err, info) {
-            if (err) { console.log(err) }
-            trainingSheet = info.worksheets[0];
-            console.log('Step 2.4: Got Training Sheet');
             step();
         });
     },
@@ -126,11 +101,9 @@ async.series([
     // Step 4 Init and run socket
     function init(step) {
         if (test) {
-            console.log('Step 3: Initiate Backtest')
             initiateBackTest();
         } else {
-            console.log('Step 3: Initiate')
-            initiate();
+            otherInit();
         }
     }
 
@@ -141,6 +114,10 @@ async.series([
         }
     }
 );
+
+function otherInit() {
+    otherMain()
+}
 
 function initiate() {
     let ws = createWebsocket(test, coin);
@@ -162,15 +139,51 @@ function initiate() {
 }
 
 function initiateBackTest() {
-    for (k in backtestTicks) {
-        main(backtestTicks[k]);
+
+}
+
+function otherMain() {
+
+    GdaxClient.getProductTicker(coin[0], function (err, data, response) {
+        ++count
+
+        // push and maintain ticks
+        volData.push(response.volume);
+        //if (volData.length > ticks) {
+        //    volData.shift();
+        //}
+
+        // wait for ticks
+        if (volData.length > 3) {
+
+            //currentIndex = volData.length - 1;
+            //lastIndex = volData.length - 2;
+
+            longAvg = getArrayAvg(volData);
+            shortAvg = getArrayAvg([volData[tickerData.length - 1], volData[tickerData.length - 2]]);
+
+            if (shortAvg > longAvg * 2 && !holdingData) {
+
+                // buy
+
+            } else if (holdingData // and it goes down...) {
+
+            }
+
+
+
     }
+    });
+
+
+
+
 }
 
 function main(data) {
     ++count
 
-    tickerData.push(data.price);
+    tickerData.push(data.last_size);
     if (tickerData.length > ticks) {
         tickerData.shift();
     }
@@ -180,13 +193,14 @@ function main(data) {
         currentIndex = tickerData.length - 1;
         lastIndex = tickerData.length - 2;
 
-        overallAvg = getArrayAvg(tickerData);
-        currentState = getArrayAvg([tickerData[tickerData.length - 1], tickerData[tickerData.length - 2]]);
+        longAvg = getArrayAvg(tickerData);
+        shortAvg = getArrayAvg([tickerData[tickerData.length - 1], tickerData[tickerData.length - 2]]);
 
-        overallAvgs.push(overallAvg);
-        currentAvgs.push(currentState);
+        //overallAvgs.push(overallAvg);
+        //currentAvgs.push(currentState);
 
-        console.log(currentState, overallAvg, currentAvgs[currentAvgs.length - 2], overallAvgs[overallAvgs.length - 2], profit, profitTarget, stopLoss, totalProfit - totalFees, orderCount, winners, losers);
+        //console.log(currentState, overallAvg, currentAvgs[currentAvgs.length - 2], overallAvgs[overallAvgs.length - 2], profit, profitTarget, stopLoss, totalProfit - totalFees, orderCount, winners, losers);
+
 
         if (holdingData) {
             //profit = (tradeAmount * data.price / holdingData.price) - tradeAmount
@@ -198,6 +212,8 @@ function main(data) {
             profitTarget = 0;
             stopLoss = 0;
         }
+
+
 
         // crossover up now state is over, last state is under
         if (currentState > overallAvg && currentAvgs[currentAvgs.length - 2] <= overallAvgs[overallAvgs.length - 2]) {
@@ -258,9 +274,10 @@ function main(data) {
                     // we need some additional data to be added to the machine learning training data later on when a sell occurs
                     holdingData.lastSvl = currentAvgs[currentAvgs.length - 2] - overallAvgs[overallAvgs.length - 2];
                     holdingData.currentSvl = currentState - overallAvg;
-                    holdingData.rocAlpha = parseFloat((parseFloat(thirdAvg) / parseFloat(secondAvg) * 100)).toFixed(3);
-                    holdingData.rocBeta = parseFloat((parseFloat(secondAvg) / parseFloat(firstAvg) * 100)).toFixed(3);
+                    holdingData.roc1 = parseFloat((parseFloat(thirdAvg) / parseFloat(secondAvg) * 100)).toFixed(3);
+                    holdingData.roc2 = parseFloat((parseFloat(secondAvg) / parseFloat(firstAvg) * 100)).toFixed(3);
                     GdaxClient.getProduct24HrStats(coin[0], function (err, response, stats) {
+                        //console.log('24hourstat', stats);
                         holdingData.open = stats.open;
                         holdingData.high = stats.high;
                         holdingData.low = stats.low;
@@ -313,8 +330,8 @@ function main(data) {
                                     volume: holdingDataCopy.volume,
                                     lastSvl: holdingDataCopy.lastSvl,
                                     currentSvl: holdingDataCopy.currentSvl,
-                                    rocAlpha: holdingDataCopy.rocAlpha,
-                                    rocBeta: holdingDataCopy.rocBeta,
+                                    roc1: holdingDataCopy.roc1,
+                                    roc2: holdingDataCopy.roc2,
                                     status: 1
                                 };
                                 sheet.addRow(newRow, function (err) { if (err) { console.log(err); } });
@@ -351,8 +368,8 @@ function main(data) {
                                     volume: holdingDataCopy.volume,
                                     lastSvl: holdingDataCopy.lastSvl,
                                     currentSvl: holdingDataCopy.currentSvl,
-                                    rocAlpha: holdingData.rocAlpha,
-                                    rocBeta: holdingData.rocBeta,
+                                    roc1: holdingData.roc1,
+                                    roc2: holdingData.roc2,
                                     status: 0
                                 };
                                 sheet.addRow(newRow, function (err) { if (err) { console.log(err); } });
@@ -376,52 +393,5 @@ function main(data) {
 
         }
 
-    } else {
-        console.log('Getting ticks...')
     }
-}
-
-function getArrayAvg(elmt) {
-    var sum = 0;
-    for (var i = 0; i < elmt.length; i++) {
-        sum += parseFloat(elmt[i]); //don't forget to add the base
-    }
-    var avg = sum / elmt.length;
-    //console.log('AVG', avg)
-    return avg;
-}
-
-function createWebsocket(test, coin) {
-    let wsUrl = 'wss://ws-feed.gdax.com';
-    if (test) {
-        secrets.gDaxApiKey = secrets.gDaxSandboxApiKey;
-        secrets.gDaxApiSecret = secrets.gDaxSandboxApiSecret;
-        secrets.gDaxPassphrase = secrets.gDaxSandboxPassphrase;
-        wsUrl = 'wss://ws-feed-public.sandbox.gdax.com';
-    }
-    return new Gdax.WebsocketClient(
-        coin,
-        wsUrl,
-        {
-            key: secrets.gDaxApiKey,
-            secret: secrets.gDaxApiSecret,
-            passphrase: secrets.gDaxPassphrase
-        },
-        { channels: ['ticker'] }
-    );
-}
-
-function authedClient(test) {
-    if (test) {
-        apiURI = apiSandboxURI;
-        secrets.gDaxApiKey = secrets.gDaxSandboxApiKey;
-        secrets.gDaxApiSecret = secrets.gDaxSandboxApiSecret;
-        secrets.gDaxPassphrase = secrets.gDaxSandboxPassphrase;
-    }
-    return new Gdax.AuthenticatedClient(
-        secrets.gDaxApiKey,
-        secrets.gDaxApiSecret,
-        secrets.gDaxPassphrase,
-        apiURI
-    );
 }
