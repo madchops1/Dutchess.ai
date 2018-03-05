@@ -13,7 +13,9 @@ forever start -o ~/Dutchess.ai/.tmp/nanana.out.log -e ~/Dutchess.ai/.tmp/nanana.
 
 NOTES:
 Nanana is the current prod momentum algo trader. The 3rd iteration of my algo traders
-I'm going to add some machine learning to the Nanana algo today 2/27/18
+
+- I'm going to add some machine learning to the Nanana algo today 2/27/18
+- Currently 
 
 Add the training data to the training sheet every sell
 Build another program that:

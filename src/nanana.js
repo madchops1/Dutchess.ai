@@ -13,6 +13,14 @@ RUNNING THIS:
 forever start -o ~/Dutchess.ai/.tmp/nanana.out.log -e ~/Dutchess.ai/.tmp/nanana.err.log nanana.js
 
 NOTES:
+
+------
+3/2/18
+Added ml training
+Thinking about also adding something so that if the profit is over the fee amount but the momentum
+... begins to trend downward we cash out. Its an idea. Maybe there could be another training model.
+
+------
 Nanana is the current prod momentum algo trader. The 3rd iteration of my algo traders
 I'm going to add some machine learning to the Nanana algo today 2/27/18
 
@@ -21,6 +29,8 @@ Build another program that:
  1. Kills the nanana.js script. Or nanana.js can kill itself after its last sell after a certian time
  2. Retrains the machine learning models for nanana daily
  3. Restarts the nanana.js script with the new endpoint
+
+
 */
 
 const constants = require('./lib/_constants.js');
@@ -351,8 +361,8 @@ function main(data) {
                                     volume: holdingDataCopy.volume,
                                     lastSvl: holdingDataCopy.lastSvl,
                                     currentSvl: holdingDataCopy.currentSvl,
-                                    rocAlpha: holdingData.rocAlpha,
-                                    rocBeta: holdingData.rocBeta,
+                                    rocAlpha: holdingDataCopy.rocAlpha,
+                                    rocBeta: holdingDataCopy.rocBeta,
                                     status: 0
                                 };
                                 sheet.addRow(newRow, function (err) { if (err) { console.log(err); } });

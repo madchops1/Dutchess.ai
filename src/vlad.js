@@ -16,32 +16,45 @@ forever start -o ~/Dutchess.ai/.tmp/vlad.out.log -e ~/Dutchess.ai/.tmp/vlad.err.
 
 NOTES:
 
+
+How to detect a spice w/ volume via getTickerData...
+- Gather ticks over time and average them this will be the long avg
+- Get a short avg by avging the last 2 ticks..
+- Get the curent vol by the current tick
+- ...
+
+or
+
+- Gather difference between ticks over time
+- Then average the difference
+- Then if there is a 25% uptick in the avg difference
+- and Momentum is going upwards we have a spike
+
+
 */
 
-
-const constants = require('./lib/_constants.js');
-const secrets = require(constants.CONFIG + '/secrets.json');
-const moment = require('moment');
+const constants = require("./lib/_constants.js");
+const secrets = require(constants.CONFIG + "/secrets.json");
+const moment = require("moment");
 const args = process.argv.slice(2);
-const sms = require(constants.LIB + '/sms.js');
-const fix = require(constants.LIB + '/fix.js');
-const rsiLtc = require(constants.LIB + '/rsi-ltc.js');
-const AWS = require('aws-sdk');
-const uuid = require('node-uuid');
-const Gdax = require('gdax');
-const GoogleSpreadsheet = require('google-spreadsheet');
+const sms = require(constants.LIB + "/sms.js");
+const fix = require(constants.LIB + "/fix.js");
+const rsiLtc = require(constants.LIB + "/rsi-ltc.js");
+const AWS = require("aws-sdk");
+const uuid = require("node-uuid");
+const Gdax = require("gdax");
+const GoogleSpreadsheet = require("google-spreadsheet");
 const sheetId = secrets.VladSheetId;
 const trainingSheetId = secrets.NananaMlSheetId;
-const async = require('async');
+const async = require("async");
+const sleep = require("sleep");
+const creds = require(constants.CONFIG + "/sheetsClientSecret.json");
 
 let doc = new GoogleSpreadsheet(sheetId);
 //let trainingDoc = new GoogleSpreadsheet(trainingSheetId);
-let creds = require(constants.CONFIG + '/sheetsClientSecret.json');
-
+let test = false;
 let priceData = [];
 let volData = [];
-let overallAvgs = [];
-let currentAvgs = [];
 let holdingData = false;
 let holdingDataCopy = false;
 let count = 0;
@@ -54,35 +67,41 @@ let totalFees = 0;
 let winners = 0;
 let losers = 0;
 let orderCount = 0;
-let shortAvg = 0;
-let longAvg = 0;
+
+let shortVolAvg = 0;
+let longVolAvg = 0;
+let shortVolAvgs = [];
+let longVolAvgs = [];
+
 let crossOvers = [];
 let date = moment();
 let sheet;
 let trainingSheet;
 let realTimeEndpoint = false;
 let GdaxClient;
-let apiURI = 'https://api.gdax.com';
-let apiSandboxURI = 'https://api-public.sandbox.gdax.com';
+let apiURI = "https://api.gdax.com";
+let apiSandboxURI = "https://api-public.sandbox.gdax.com";
 
 // Dials
-let coin = ['LTC-USD'];
-let currency = 'LTC';
+let coin = ["LTC-USD"];
+let currency = "LTC";
 let tradeAmountCoin = 0.1;
 let risk = 0.01;
 let targetRatio = 3; // 3:risk
 let target = risk * targetRatio;
 let ticks = 9; //999; //1440;
 
-async.series([
-
+async.series(
+  [
     // Step 1 Config, test, endpoint, gdax client, sheets auth
     function config(step) {
-        if (args[0] === 'test') { test = true; }
-        //if (args[0] === 'endpoint') { realTimeEndpoint = args[1]; }
-        console.log('Step 1: Config', test, realTimeEndpoint);
-        GdaxClient = authedClient(test);
-        doc.useServiceAccountAuth(creds, step);
+      if (args[0] === "test") {
+        test = true;
+      }
+      //if (args[0] === 'endpoint') { realTimeEndpoint = args[1]; }
+      console.log("Step 1: Config", test, realTimeEndpoint);
+      GdaxClient = authedClient(test);
+      doc.useServiceAccountAuth(creds, step);
     },
 
     //function setTrainingAuth(step) {
@@ -90,35 +109,36 @@ async.series([
     //    trainingDoc.useServiceAccountAuth(creds, step);
     //},
 
-    // Step 3 Get sheet
+    // Step 2 Get sheet
     function getInfoAndWorksheets(step) {
-        doc.getInfo(function (err, info) {
-            sheet = info.worksheets[0];
-            step();
-        });
+      doc.getInfo(function(err, info) {
+        console.log("Step 2: Got sheet", test, realTimeEndpoint);
+        sheet = info.worksheets[0];
+        step();
+      });
     },
 
     // Step 4 Init and run socket
     function init(step) {
-        if (test) {
-            initiateBackTest();
-        } else {
-            otherInit();
-        }
+      if (test) {
+        initiateBackTest();
+      } else {
+        initiate();
+      }
     }
-
-],
-    function (err) {
-        if (err) {
-            console.log('Error: ' + err);
-        }
+  ],
+  function(err) {
+    if (err) {
+      console.log("Error: " + err);
     }
+  }
 );
 
-function otherInit() {
-    otherMain()
+function initiate() {
+  main();
 }
 
+/*
 function initiate() {
     let ws = createWebsocket(test, coin);
     ws.on('message', data => {
@@ -137,49 +157,83 @@ function initiate() {
         console.log('close');
     });
 }
+*/
 
-function initiateBackTest() {
+function initiateBackTest() {}
 
-}
+function main() {
+  GdaxClient.getProductTicker(coin[0], function(err, data, response) {
+    ++count;
 
-function otherMain() {
+    console.log(response.volume);
 
-    GdaxClient.getProductTicker(coin[0], function (err, data, response) {
-        ++count
+    // push and maintain ticks
+    volData.push(response.volume);
+    //priceData.push()
+    //if (volData.length > ticks) {
+    //    volData.shift();
+    //}
 
-        // push and maintain ticks
-        volData.push(response.volume);
-        //if (volData.length > ticks) {
-        //    volData.shift();
-        //}
+    // wait for ticks
+    if (volData.length > 3) {
+      //currentIndex = volData.length - 1;
+      //lastIndex = volData.length - 2;
 
-        // wait for ticks
-        if (volData.length > 3) {
+      longVolAvg = getArrayAvg(volData);
+      shortVolAvg = getArrayAvg([
+        volData[volData.length - 1],
+        volData[volData.length - 2]
+      ]);
+      longVolAvgs.push(longVolAvg);
+      shortVolAvgs.push(shortVolAvg);
 
-            //currentIndex = volData.length - 1;
-            //lastIndex = volData.length - 2;
-
-            longAvg = getArrayAvg(volData);
-            shortAvg = getArrayAvg([volData[tickerData.length - 1], volData[tickerData.length - 2]]);
-
-            if (shortAvg > longAvg * 2 && !holdingData) {
-
-                // buy
-
-            } else if (holdingData // and it goes down...) {
-
-            }
-
-
-
+      // detect volume higer than avg
+      if (
+        shortVolAvg > longVolAvg &&
+        shortVolAvgs[shortVolAvgs.length - 2] <=
+          longVolAvgs[longVolAvgs.length - 2]
+      ) {
+        // if momentum is upward too then buy if no holdin
+      } else if (
+        shortVolAvg < longVolAvg &&
+        shortVolAvgs[shortVolAvgs.length - 2] >=
+          longVolAvgs[longVolAvgs.length - 2]
+      ) {
+        // detect volume downward momentum crossover
+      } else {
+      }
     }
-    });
-
-
-
-
+    sleep.sleep(5);
+    main();
+  });
 }
 
+function authedClient(test) {
+  if (test) {
+    apiURI = apiSandboxURI;
+    secrets.gDaxApiKey = secrets.gDaxSandboxApiKey;
+    secrets.gDaxApiSecret = secrets.gDaxSandboxApiSecret;
+    secrets.gDaxPassphrase = secrets.gDaxSandboxPassphrase;
+  }
+  return new Gdax.AuthenticatedClient(
+    secrets.gDaxApiKey,
+    secrets.gDaxApiSecret,
+    secrets.gDaxPassphrase,
+    apiURI
+  );
+}
+
+function getArrayAvg(elmt) {
+  var sum = 0;
+  for (var i = 0; i < elmt.length; i++) {
+    sum += parseFloat(elmt[i]); //don't forget to add the base
+  }
+  var avg = sum / elmt.length;
+  //console.log('AVG', avg)
+  return avg;
+}
+
+/*
 function main(data) {
     ++count
 
@@ -395,3 +449,4 @@ function main(data) {
 
     }
 }
+*/
