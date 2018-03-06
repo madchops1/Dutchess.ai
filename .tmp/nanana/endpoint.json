@@ -1,0 +1,8 @@
+{
+  "trainingDatasourceId":
+    "nanana-train-ds-76ee4f89-1433-4936-80cb-cd3405879931",
+  "evaluationDatasourceId":
+    "nanana-eval-ds-6f480c24-aa63-44a1-b7af-3c9f54d9a9cd",
+  "modelId": "nanana-model-8094ba04-34d4-4000-bcbf-fa2b79df38fb",
+  "endpoint": "https://realtime.machinelearning.us-east-1.amazonaws.com"
+}
