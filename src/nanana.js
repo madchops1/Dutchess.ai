@@ -50,6 +50,7 @@ const async = require("async");
 const fs = require("fs");
 const axios = require("axios");
 const mL = new AWS.MachineLearning({ region: "us-east-1" });
+const shell = require("shelljs");
 
 //const backtestTicks = require(constants.TMP + '/LTC.tickers.0153f8b2-ebf6-459f-8d30-d8607f10ce01.json');
 const backtestTicks = require(constants.TMP +
@@ -460,6 +461,7 @@ function main(data) {
                   if (err) {
                     console.log(err);
                   }
+                  shell.exec(constants.SRC + "/nanana.ml.sh");
                 });
               });
           }
