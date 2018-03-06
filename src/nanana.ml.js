@@ -27,6 +27,9 @@ Build another program that:
 Instead of restarting the nanana.js script...
 ...I can just write the endpoint to a .tmp file and then get it from that .tmp file
 
+2/6/18
+This will be executed by the nanana.js script each time it sells
+So we good biotch
 */
 
 // Dependencies
