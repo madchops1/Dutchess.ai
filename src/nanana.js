@@ -30,6 +30,10 @@ Build another program that:
  2. Retrains the machine learning models for nanana daily
  3. Restarts the nanana.js script with the new endpoint
 
+ 3/5/18 Its alive, kinda buggy
+ - Can I build a bail ml model to bail when it makes sense
+ - Could it ask will it go higher?
+
 
 */
 
@@ -96,7 +100,7 @@ let tradeAmountCoin = 0.1;
 let risk = 0.01;
 let targetRatio = 3; // 3:risk
 let target = risk * targetRatio;
-let ticks = 333; //999; //1440;
+let ticks = 33; //999; //1440;
 
 async.series(
   [
@@ -112,7 +116,11 @@ async.series(
         data = JSON.parse(data);
         realTimeEndpoint = data.endpoint;
         modelId = data.modelId;
-        console.log("Step 1.1: Got Endpoint and ModelId");
+        console.log(
+          "Step 1.1: Got Endpoint and ModelId",
+          modelId,
+          realTimeEndpoint
+        );
         step();
       });
     },
@@ -122,7 +130,7 @@ async.series(
       if (args[0] === "test") {
         test = true;
       }
-      console.log("Step 1.2: Config", test, realTimeEndpoint);
+      console.log("Step 1.2: Configuration, Test:", test);
       GdaxClient = authedClient(test);
       step();
     },
@@ -226,6 +234,7 @@ function main(data) {
     currentAvgs.push(currentState);
 
     console.log(
+      count,
       currentState,
       overallAvg,
       currentAvgs[currentAvgs.length - 2],
@@ -336,7 +345,9 @@ function main(data) {
                 MLModelId: modelId,
                 PredictEndpoint: realTimeEndpoint,
                 Record: {
-                  time: moment().format("YYYY-MM-DD"),
+                  time: moment()
+                    .utc()
+                    .format(),
                   price: data.price,
                   open: open,
                   high: high,
@@ -355,7 +366,7 @@ function main(data) {
                 if (err) {
                   console.log(err, err.stack);
                 } else {
-                  console.log("PREDICTION", prediction.label);
+                  console.log("PREDICTION", prediction.predictionLabel);
 
                   if (prediction.predictionLabel == "1") {
                     ++orderCount;
@@ -400,6 +411,8 @@ function main(data) {
                     holdingData.low = low;
                     holdingData.volume = volume;
                     console.log("TRAIN DATA", holdingData);
+                  } else {
+                    console.log("PREDICTION SAYS NO");
                   }
                 }
               });
@@ -523,11 +536,11 @@ function main(data) {
         }
       } else {
         // no hold yet
-        console.log("NO HOLDING YET");
+        console.log("NO HOLDING. YET.");
       }
     }
   } else {
-    console.log("Getting ticks...");
+    console.log("Getting ticks..." + count);
   }
 }
 

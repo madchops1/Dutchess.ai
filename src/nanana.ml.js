@@ -95,6 +95,14 @@ let dataSchema = JSON.stringify({
 
 async.series(
   [
+    // cleanup old endpoin
+    /*
+    function cleanup(step) {
+        // get json file
+        // delete data sources, delete endpoint, delete, eval, delete model...
+    },
+    */
+
     // Step 1 Authenticate training sheet
     function authenticateTrainingSheet(step) {
       console.log("Step 1: Authenticated Google Sheets");
