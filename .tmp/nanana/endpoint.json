@@ -1,8 +1,1 @@
-{
-  "trainingDatasourceId":
-    "nanana-train-ds-76ee4f89-1433-4936-80cb-cd3405879931",
-  "evaluationDatasourceId":
-    "nanana-eval-ds-6f480c24-aa63-44a1-b7af-3c9f54d9a9cd",
-  "modelId": "nanana-model-8094ba04-34d4-4000-bcbf-fa2b79df38fb",
-  "endpoint": "https://realtime.machinelearning.us-east-1.amazonaws.com"
-}
+{"trainingDatasourceId":"nanana-train-ds-fbd64d58-fa81-4c95-862b-223645d5fdac","evaluationDatasourceId":"nanana-eval-ds-0c6973ca-a939-4b33-8a9a-9c19539c6925","modelId":"nanana-model-4a1b32b3-68a2-4f6c-a6e5-a3d52ffa3f13","endpoint":"https://realtime.machinelearning.us-east-1.amazonaws.com"}

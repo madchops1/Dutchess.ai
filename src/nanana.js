@@ -34,6 +34,10 @@ Build another program that:
  - Can I build a bail ml model to bail when it makes sense
  - Could it ask will it go higher?
 
+ 3/6/18
+ The dumb version is going to have to run for a while to get data
+ 
+
 
 */
 

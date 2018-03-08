@@ -30,6 +30,10 @@ or
 - Then if there is a 25% uptick in the avg difference
 - and Momentum is going upwards we have a spike
 
+3/5/18
+Compare volume short/long
+vs.
+Momentum crossover
 
 */
 
