@@ -51,6 +51,9 @@ let stopLoss = 0;
 let totalProfit = 0;
 let winners = 0;
 let losers = 0;
+let sellSignal = false;
+let feeRate = 0.003;
+let totalFees = 0;
 
 // Dials
 let ticks = 60;
@@ -146,9 +149,13 @@ function handleTrading(data) {
       momentumIsDown()
     );
 
-    // if volume crosses up and momentum is upward
-    // and holding
-    if (volumeCrossesUpwards() && momentumIsUp() && !holdingData) {
+    // if volume crosses up and momentum is up
+    // and we have a sellSignal then cancel it
+    if (volumeCrossesUpwards() && momentumIsUp() && sellSignal) {
+      sellSignal = false;
+    } else if (volumeCrossesUpwards() && momentumIsUp() && !holdingData) {
+      // if volume crosses up and momentum is upward
+      // and holding
       // if ml then query endpoint
       console.log("BUY SIGNAL");
       if (machineLearning) {
@@ -167,6 +174,7 @@ function handleTrading(data) {
       }
     } else if (volumeCrossesUpwards() && momentumIsDown() && holdingData) {
       console.log("SELL SIGNAL");
+      sellSignal = true;
       sellBail(data).then(function(data, err) {
         if (err) {
           console.log(err);
@@ -197,6 +205,11 @@ function handleTrading(data) {
             function(callback) {
               sellTarget(data).then(function(data, err) {
                 //
+                callback(null, data);
+              });
+            },
+            function(callback) {
+              sellBail(data).then(function(data, err) {
                 callback(null, data);
               });
             }
@@ -233,6 +246,8 @@ function buy(data) {
         if (data.status == "rejected") {
           reject(data);
         } else {
+          let fee = tradeAmountCoin * price * feeRate;
+          totalFees = parseFloat(totalFees) + parseFloat(fee);
           holdingData = data;
           resolve(data);
         }
@@ -262,8 +277,11 @@ function sell(data) {
         if (data.status == "rejected") {
           reject(data);
         } else {
+          let fee = tradeAmountCoin * price * feeRate;
+          totalFees = parseFloat(totalFees) + parseFloat(fee);
           totalProfit = totalProfit + profit;
           hodingData = false;
+          sellSignal = false;
           resolve(data);
         }
       });
@@ -290,7 +308,8 @@ function sellStopLoss(data) {
 
 function sellBail(data) {
   return new Promise(function(resolve, reject) {
-    if (profit >= 0) {
+    let fee = tradeAmountCoin * data.price * feeRate;
+    if (profit >= fee * 2 && sellSignal) {
       console.log("SELL BAIL");
       sell(data).then(function(data, err) {
         if (err) {
