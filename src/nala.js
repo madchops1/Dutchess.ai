@@ -32,7 +32,6 @@ const apiURI = "https://api.gdax.com";
 
 let trainingDoc = new GoogleSpreadsheet(trainingSheetId);
 let creds = require(constants.CONFIG + "/sheetsClientSecret.json");
-
 let machineLearning = false;
 let machineLearningData = false;
 let coin = ["LTC-USD"];
@@ -54,6 +53,7 @@ let losers = 0;
 let sellSignal = false;
 let feeRate = 0.003;
 let totalFees = 0;
+let orderInProgress = false;
 
 // Dials
 let ticks = 60;
@@ -189,7 +189,7 @@ function handleTrading(data) {
           profit,
           profitTarget,
           stopLoss,
-          totalProfit,
+          totalProfit - totalFees,
           winners,
           losers
         );
@@ -233,6 +233,7 @@ function handleTrading(data) {
 }
 
 function buy(data) {
+  orderInProgress = true;
   return new Promise(function(resolve, reject) {
     price = data.price;
     fix
@@ -243,6 +244,7 @@ function buy(data) {
           reject(err);
         }
         console.log("BUY", price, data);
+        orderInProgress = false;
         if (data.status == "rejected") {
           reject(data);
         } else {
@@ -256,6 +258,7 @@ function buy(data) {
 }
 
 function sell(data) {
+  orderInProgress = true;
   return new Promise(function(resolve, reject) {
     price = data.price;
     fix
@@ -274,6 +277,7 @@ function sell(data) {
           reject(err);
         }
         console.log("SELL", price, data);
+        orderInProgress = false;
         if (data.status == "rejected") {
           reject(data);
         } else {
@@ -290,7 +294,7 @@ function sell(data) {
 
 function sellStopLoss(data) {
   return new Promise(function(resolve, reject) {
-    if (profit <= stopLoss) {
+    if (profit <= stopLoss && !orderInProgress) {
       console.log("SELL STOPLOSS");
       sell(data).then(function(data, err) {
         if (err) {
@@ -309,7 +313,7 @@ function sellStopLoss(data) {
 function sellBail(data) {
   return new Promise(function(resolve, reject) {
     let fee = tradeAmountCoin * data.price * feeRate;
-    if (profit >= fee * 2 && sellSignal) {
+    if (profit >= fee * 2 && sellSignal && !orderInProgress) {
       console.log("SELL BAIL");
       sell(data).then(function(data, err) {
         if (err) {
@@ -328,7 +332,7 @@ function sellBail(data) {
 function sellTarget(data) {
   return new Promise(function(resolve, reject) {
     // if holding lets stoploss here
-    if (profit >= profitTarget) {
+    if (profit >= profitTarget && !orderInProgress) {
       console.log("SELL TARGET");
       sell(data).then(function(data, err) {
         if (err) {
