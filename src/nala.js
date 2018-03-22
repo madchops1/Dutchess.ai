@@ -31,6 +31,7 @@ const shell = require('shelljs');
 const apiURI = 'https://api.gdax.com';
 
 let trainingDoc = new GoogleSpreadsheet(trainingSheetId);
+let trainingSheet;
 let creds = require(constants.CONFIG + '/sheetsClientSecret.json');
 let machineLearning = false;
 let machineLearningData = false;
@@ -144,6 +145,7 @@ function handleTrading(data) {
 
         // if volume crosses up and momentum is up
         // and we have a sellSignal then cancel it
+        // because that means we should buy...
         if (volumeCrossesUpwards() && momentumIsUp() && sellSignal) {
             sellSignal = false;
         } else if (volumeCrossesUpwards() && momentumIsUp() && !holdingData) {
@@ -234,13 +236,21 @@ function buy(data) {
                 let fee = tradeAmountCoin * price * feeRate;
                 totalFees = parseFloat(totalFees) + parseFloat(fee);
                 holdingData = data;
+                holdingData.date = moment().format('MM/DD/YYYY');
+                holdingData.time = moment().format('hh:mm A');
+                holdingData.currentVolumeDif =
+                    shortVolumeAvgs[shortVolumeAvgs.length - 1] - longVolumeAvgs[longVolumeAvgs.length - 1];
+                holdingData.lastVolumeDif =
+                    shortVolumeAvgs[shortVolumeAvgs.length - 2] - longVolumeAvgs[longVolumeAvgs.length - 2];
+                holdingData.momentumDif =
+                    shortMomentumAvgs[shortMomentumAvgs.length - 1] - longMomentumAvgs[longMomentumAvgs.length - 1];
                 resolve(data);
             }
         });
     });
 }
 
-function sell(data) {
+function sell(data, status) {
     orderInProgress = true;
     return new Promise(function(resolve, reject) {
         price = data.price;
@@ -257,6 +267,28 @@ function sell(data) {
                 let fee = tradeAmountCoin * price * feeRate;
                 totalFees = parseFloat(totalFees) + parseFloat(fee);
                 totalProfit = totalProfit + profit;
+
+                // Add data to training set
+                console.log('HOLDING DATA IN SELL', holdingData);
+                let newTrainingRow = {
+                    date: holdingData.date,
+                    time: holdingData.time,
+                    price: holdingData.price,
+                    open: holdingData.open,
+                    high: holdingData.high,
+                    low: holdingData.low,
+                    volume: holdingData.volume,
+                    lastVolumeDif: holdingData.lastVolumeDif,
+                    currentVolumeDif: holdingData.currentVolumeDif,
+                    momentumDif: holdingData.momentumDif,
+                    status: status
+                };
+                trainingSheet.addRow(newTrainingRow, function(err) {
+                    if (err) {
+                        console.log(err);
+                    }
+                });
+
                 holdingData = false;
                 sellSignal = false;
                 resolve(data);
@@ -269,7 +301,7 @@ function sellStopLoss(data) {
     return new Promise(function(resolve, reject) {
         if (profit <= stopLoss && !orderInProgress) {
             console.log('SELL STOPLOSS');
-            sell(data).then(function(data, err) {
+            sell(data, 0).then(function(data, err) {
                 if (err) {
                     console.log(err);
                     reject(err);
@@ -288,7 +320,7 @@ function sellBail(data) {
         let fee = tradeAmountCoin * data.price * feeRate;
         if (profit >= fee * 2 && sellSignal && !orderInProgress) {
             console.log('SELL BAIL');
-            sell(data).then(function(data, err) {
+            sell(data, 1).then(function(data, err) {
                 if (err) {
                     console.log(err);
                     reject(err);
@@ -307,7 +339,7 @@ function sellTarget(data) {
         // if holding lets stoploss here
         if (profit >= profitTarget && !orderInProgress) {
             console.log('SELL TARGET');
-            sell(data).then(function(data, err) {
+            sell(data, 1).then(function(data, err) {
                 if (err) {
                     console.log(err);
                     reject(err);
@@ -340,6 +372,10 @@ function volumeCrossesUpwards() {
 }
 
 function momentumIsUp() {
+    console.log(
+        'Momentum',
+        shortMomentumAvgs[shortMomentumAvgs.length - 1] - longMomentumAvgs[longMomentumAvgs.length - 1]
+    );
     if (shortMomentumAvgs[shortMomentumAvgs.length - 1] > longMomentumAvgs[longMomentumAvgs.length - 1]) {
         return true;
     } else {
@@ -348,6 +384,11 @@ function momentumIsUp() {
 }
 
 function momentumIsDown() {
+    console.log(
+        'Momentum',
+        shortMomentumAvgs[shortMomentumAvgs.length - 1] - longMomentumAvgs[longMomentumAvgs.length - 1]
+    );
+
     if (shortMomentumAvgs[shortMomentumAvgs.length - 1] < longMomentumAvgs[longMomentumAvgs.length - 1]) {
         return true;
     } else {
