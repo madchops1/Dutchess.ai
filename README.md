@@ -1,6 +1,6 @@
 # Dutchess.ai
 
-A suite of nodejs black boxes for machine learning and automated trading. All named after cats.
+A suite of nodejs black boxes for alogorithmic and machine learning supported trading. All named after cats.
 
 ## Get Started
 
@@ -25,15 +25,16 @@ for more information.
 
     node princess.js    - Oil Futures momentum predictor
     node tiger.js       - Machine learning bitcoin momentum predictor
-    node super-tiger.js - Rotating momentum algo trader v1
-    node puss.js        - Momentum algo trader v1
-    node nanana.dumb.js - Momentum algo trader v2
-    node nanana.js      - Momentum algo trader v3 w/ machine learning
+    node super-tiger.js - Rotating momentum Bitcoin, Litecoin, and Ether algo trader v1
+    node puss.js        - Momentum algo Litecoin trader v1
+    node nanana.dumb.js - Momentum algo Litecoin trader v2
+    node nanana.js      - Learning momentum algo Litecoin trader v3 AI
     node nanana.ml.js   - nanana.js machine learning component
-    node randy.js       - RSI breackout aglo trader
+    node randy.js       - RSI breackout aglo Litecoin trader
     node bella.js       - Backtest tick data generator
-    node nala.js        - Volume and Momentum algo trader
-    node nala.ml.js     - nala.js machine learning component
+    node nala.js        - Volume and Momentum algo Litecoin trader (In progress)
+    node nala.ml.js     - nala.js machine learning component (In progress)
+    need more ideas...
 
 ## Library
 

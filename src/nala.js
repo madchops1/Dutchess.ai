@@ -238,6 +238,7 @@ function buy(data) {
                 holdingData = data;
                 holdingData.date = moment().format('MM/DD/YYYY');
                 holdingData.time = moment().format('hh:mm A');
+                holdingData.volume = shortVolumeAvgs[shortVolumeAvgs.length - 1];
                 holdingData.currentVolumeDif =
                     shortVolumeAvgs[shortVolumeAvgs.length - 1] - longVolumeAvgs[longVolumeAvgs.length - 1];
                 holdingData.lastVolumeDif =
@@ -274,9 +275,6 @@ function sell(data, status) {
                     date: holdingData.date,
                     time: holdingData.time,
                     price: holdingData.price,
-                    open: holdingData.open,
-                    high: holdingData.high,
-                    low: holdingData.low,
                     volume: holdingData.volume,
                     lastVolumeDif: holdingData.lastVolumeDif,
                     currentVolumeDif: holdingData.currentVolumeDif,
@@ -355,6 +353,7 @@ function sellTarget(data) {
 
 function volumeCrossesUpwards() {
     console.log(
+        moment().format('MM/DD/YYYY hh:ii:ss A'),
         'Volume Crossover',
         shortVolumeAvgs[shortVolumeAvgs.length - 1] - longVolumeAvgs[longVolumeAvgs.length - 1],
         '|',
