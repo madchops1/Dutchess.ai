@@ -105,18 +105,29 @@ let targetRatio = 3; // 3:risk
 let target = risk * targetRatio;
 let ticks = 333; //999; //1440;
 
+function getEndpoint(log) {
+    return new Promise(function(resolve, reject) {
+        fs.readFile(constants.TMP + '/nanana/endpoint.json', function read(err, data) {
+            if (err) {
+                reject(err);
+                throw err;
+            }
+            data = JSON.parse(data);
+            realTimeEndpoint = data.endpoint;
+            modelId = data.modelId;
+            if (log) {
+                console.log('Step 1.1: Got Endpoint and ModelId', modelId, realTimeEndpoint);
+            }
+            resolve();
+        });
+    });
+}
+
 async.series(
     [
         // Step 1.1
-        function getEndpoint(step) {
-            fs.readFile(constants.TMP + '/nanana/endpoint.json', function read(err, data) {
-                if (err) {
-                    throw err;
-                }
-                data = JSON.parse(data);
-                realTimeEndpoint = data.endpoint;
-                modelId = data.modelId;
-                console.log('Step 1.1: Got Endpoint and ModelId', modelId, realTimeEndpoint);
+        function(step) {
+            getEndpoint(true).then(function(data) {
                 step();
             });
         },
@@ -210,7 +221,7 @@ function initiateBackTest() {
 
 function main(data) {
     ++count;
-
+    getEndpoint();
     tickerData.push(data.price);
     if (tickerData.length > ticks) {
         tickerData.shift();
