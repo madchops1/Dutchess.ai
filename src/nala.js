@@ -502,7 +502,6 @@ function returnJsonFileObject(file) {
 
 function authedClient() {
     console.log('Config Gdax');
-
     return new Gdax.AuthenticatedClient(secrets.gDaxApiKey, secrets.gDaxApiSecret, secrets.gDaxPassphrase, apiURI);
 }
 
