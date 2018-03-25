@@ -32,9 +32,9 @@ for more information.
     node nanana.ml.js   - nanana.js machine learning component
     node randy.js       - RSI breackout aglo Litecoin trader
     node bella.js       - Backtest tick data generator
-    node nala.js        - Volume and Momentum algo Litecoin trader (In progress)
+    node nala.js        - Volume and Momentum algo Litecoin trader
     node nala.ml.js     - nala.js machine learning component (In progress)
-    need more ideas...
+    node apoorva.js     - Daily 5 day SMA vs. 20 day SMA momentum algo
 
 ## Library
 
@@ -42,6 +42,10 @@ for more information.
     fix.js              - Gdax fix trading api
     rsi-ltc.js          - Litecoin RSI api
     sms.js              - AWS sms sender api
+
+## Data Stores
+
+    The Dutchess programs use json file and Google Sheets as their data stores.
 
 ## AWS Resources
 

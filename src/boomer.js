@@ -1,4 +1,4 @@
-/**
+/*
  
 Smith & Wesson  AOBC
 Ruger           RGR

@@ -4,13 +4,14 @@
   > ^ <
 DUTCHESS.AI - "Apoorva"
 
-calculate 5 day sma
-calculate 20 day sma
-Take a long position when the 5 day SMA is larger than or equal to 20 day SMA
-Take a short position / sell when the 5 day SMA is smaller than 20 day SMA
+1. calculate 5 day sma
+2. calculate 20 day sma
+3, Take a long position when the 5 day SMA is larger than or equal to 20 day SMA
+4. Sell when the 5 day SMA is smaller than 20 day SMA
 
-run daily at 12:01 am
-
+NOTES:
+close prices are last of the 24 hour day
+run daily at 1am
 */
 const constants = require('./lib/_constants.js');
 const secrets = require(constants.CONFIG + '/secrets.json');
@@ -28,11 +29,6 @@ const fs = require('fs');
 const mL = new AWS.MachineLearning({ region: 'us-east-1' });
 const shell = require('shelljs');
 const apiURI = 'https://api.gdax.com';
-
-// calculate 5 day sma
-// calculate 20 day sma
-// Take a long position when the 5 day SMA is larger than or equal to 20 day SMA
-// Take a short position / sell when the 5 day SMA is smaller than 20 day SMA
 
 let trainingDoc = new GoogleSpreadsheet(trainingSheetId);
 let trainingSheet;
