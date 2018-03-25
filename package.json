@@ -23,11 +23,14 @@
     "json2csv": "^3.11.5",
     "mailchimp-api-v3": "^1.8.0",
     "moment": "^2.20.1",
+    "newsapi": "^2.2.1",
     "node-oanda": "^1.1.20",
     "node-uuid": ">= 1.4.1",
     "request": "^2.83.0",
     "scraperjs": "^1.2.0",
+    "sentiment": "^4.2.0",
     "shelljs": "^0.8.1",
-    "sleep": "^5.1.1"
+    "sleep": "^5.1.1",
+    "twit": "^2.2.9"
   }
 }

@@ -57,7 +57,7 @@ let totalFees = 0;
 let orderInProgress = false;
 
 // Dials
-let ticks = 60;
+let ticks = 120;
 let tradeAmountCoin = 0.1;
 let risk = 0.01;
 let targetRatio = 3; // 3:risk
@@ -353,7 +353,7 @@ function sellTarget(data) {
 
 function volumeCrossesUpwards() {
     console.log(
-        moment().format('MM/DD/YYYY hh:ii:ss A'),
+        moment().format('MM/DD/YYYY hh:mm:ss A'),
         'Volume Crossover',
         shortVolumeAvgs[shortVolumeAvgs.length - 1] - longVolumeAvgs[longVolumeAvgs.length - 1],
         '|',

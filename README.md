@@ -35,6 +35,8 @@ for more information.
     node nala.js        - Volume and Momentum algo Litecoin trader
     node nala.ml.js     - nala.js machine learning component (In progress)
     node apoorva.js     - Daily 5 day SMA vs. 20 day SMA momentum algo
+    node charlie.js     - Order book analysis (In progress)
+    node bubbles.js     - Fundamental news (In progress)
 
 ## Library
 
@@ -42,6 +44,9 @@ for more information.
     fix.js              - Gdax fix trading api
     rsi-ltc.js          - Litecoin RSI api
     sms.js              - AWS sms sender api
+    vibe.js             - Gets the seniment/vibe of a string
+    vibeNews.js         - Gets the vibe of the news
+    vibeTweets.js       - Gets the vibe on twitter
 
 ## Data Stores
 
@@ -59,6 +64,11 @@ http://developer.mailchimp.com/documentation/mailchimp/reference/campaigns/#acti
 ## TDA Resources
 
 http://apiforums.tdameritrade.com/tda-board/ubbthreads.php
+
+## API Resources
+
+News - https://newsapi.org/docs/endpoints/sources
+Twitter - https://twitter.cm
 
 ## Secrets
 
