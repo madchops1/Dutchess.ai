@@ -172,11 +172,11 @@ async.series(
                 DataSourceId: trainingDatasourceId,
                 DataSpec: {
                     DataLocationS3: 's3://' + bucketName + '/' + keyName,
-                    DataRearrangement: '{"splitting":{"percentBegin":0, "percentEnd":50, "strategy":"random"}}',
+                    DataRearrangement: '{"splitting":{"percentBegin":0, "percentEnd":70, "strategy":"random"}}',
                     DataSchema: dataSchema
                 },
                 ComputeStatistics: true,
-                DataSourceName: 'Nanana Strategy Training 0-50 ' + moment().format('YYYY-MM-DD')
+                DataSourceName: 'Nanana Strategy Training 0-70 ' + moment().format('YYYY-MM-DD')
             };
 
             mL.createDataSourceFromS3(params, function(err, data) {
@@ -197,11 +197,11 @@ async.series(
                 DataSourceId: evaluationDatasourceId,
                 DataSpec: {
                     DataLocationS3: 's3://' + bucketName + '/' + keyName,
-                    DataRearrangement: '{"splitting":{"percentBegin":50, "percentEnd":100, "strategy":"random"}}',
+                    DataRearrangement: '{"splitting":{"percentBegin":70, "percentEnd":100, "strategy":"random"}}',
                     DataSchema: dataSchema
                 },
                 ComputeStatistics: true,
-                DataSourceName: 'Nana Strategy Evaluation 50-100 ' + moment().format('YYYY-MM-DD')
+                DataSourceName: 'Nana Strategy Evaluation 70-100 ' + moment().format('YYYY-MM-DD')
             };
 
             mL.createDataSourceFromS3(params, function(err, data) {
