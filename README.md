@@ -12,11 +12,11 @@ You need to set up your AWS security credentials before the sample code is able
 to connect to AWS. You can do this by creating a file named "credentials" at ~/.aws/
 (C:\Users\USER_NAME\.aws\ for Windows users) and saving the following lines in the file:
 
-    ```
-    [default]
-    aws_access_key_id = <your access key id>
-    aws_secret_access_key = <your secret key>
-    ```
+```
+[default]
+aws_access_key_id = <your access key id>
+aws_secret_access_key = <your secret key>
+```
 
 See the [Security Credentials](http://aws.amazon.com/security-credentials) page.
 It's also possible to configure your credentials via a configuration file or
@@ -60,11 +60,11 @@ The Dutchess programs use json file and Google Sheets as their data stores.
 Server cron is usually UTC so these times account for the offset. You may need to adjust your cronjobs depending on your location.
 
 ```
-0 0 * * 1-5 /home/ec2-user/Dutchess.ai/src/cron/princess.sh
-0 5 * * * /home/ec2-user/Dutchess.ai/src/cron/tiger.sh
-0 15 * * 1-5 /home/ec2-user/Dutchess.ai/src/cron/randy.sh
-0 7 * * * /home/ec2-user/Dutchess.ai/src/cron/apoorva.sh
-#*/5 * * * * /home/ec2-user/Dutchess.ai/src/cron/crontest.sh
+0 0 * * 1-5 [path]/Dutchess.ai/src/cron/princess.sh
+0 5 * * * [path]/Dutchess.ai/src/cron/tiger.sh
+0 15 * * 1-5 [path]/Dutchess.ai/src/cron/randy.sh
+0 7 * * * [path]/Dutchess.ai/src/cron/apoorva.sh
+#*/5 * * * * [path]/Dutchess.ai/src/cron/crontest.sh
 ```
 
 ## AWS Resources
@@ -82,8 +82,14 @@ http://apiforums.tdameritrade.com/tda-board/ubbthreads.php
 
 ## API Resources
 
-News - https://newsapi.org/docs/endpoints/sources
-Twitter - https://twitter.cm
+    News        - https://newsapi.org/docs/endpoints/sources
+    Twitter     - https://twitter.cm
+    Google
+    Twillio
+    AWS
+    Coinbase
+    Gdax
+    Mailchimp
 
 ## Secrets
 
@@ -93,54 +99,58 @@ Config the secrets files accordingly.
 
 ```
 {
-"GoogleSheetId": "XXX",
-"BucketName": "XXX",
-"TigerBucketName": "XXX",
-"TigerSheetId": "XXX",
-"RandySheetId": "XXX",
-"NananaSheetId": "XXX",
-"NananaMlSheetId": "XXX",
-"NananaBucketName": "XXX",
-"NalaTrainingSheetId": "XXX",
-"NalaBucketName": "XXX",
-"VladSheetId": "XXX",
-"LinxSheetId": "XXX",
-"QuandlApiKey": "XXX",
-"MailchimpApiKey": "XXX",
-"MailchimpListId": "XXX",
-"CoinbaseApiKey": "XXX",
-"CoinbaseApiSecret": "XXX",
-"gDaxApiKey": "XXX",
-"gDaxApiSecret":"XXX",
-"gDaxPassphrase": "XXX",
-"gDaxSandboxApiKey": "XXX",
-"gDaxSandboxApiSecret":"XXX",
-"gDaxSandboxPassphrase": "XXX",
-"twilioSid": "XXX",
-"twilioAuthToken": "XXX",
-"twilioApiKey": "XXX",
-"twilioApiSecret": "XXX",
-"newsApiKey": "XXX",
-"twitterConsumerKey": "XXX",
-"twitterConsumerSecret": "XXX",
-"twitterAccessToken": "XXX",
-"twitterAccessTokenSecret": "XXX"
+    "GoogleSheetId": "XXX",
+    "BucketName": "XXX",
+    "TigerBucketName": "XXX",
+    "TigerSheetId": "XXX",
+    "RandySheetId": "XXX",
+    "NananaSheetId": "XXX",
+    "NananaMlSheetId": "XXX",
+    "NananaBucketName": "XXX",
+    "NalaTrainingSheetId": "XXX",
+    "NalaBucketName": "XXX",
+    "VladSheetId": "XXX",
+    "LinxSheetId": "XXX",
+    "QuandlApiKey": "XXX",
+    "MailchimpApiKey": "XXX",
+    "MailchimpListId": "XXX",
+    "CoinbaseApiKey": "XXX",
+    "CoinbaseApiSecret": "XXX",
+    "gDaxApiKey": "XXX",
+    "gDaxApiSecret":"XXX",
+    "gDaxPassphrase": "XXX",
+    "gDaxSandboxApiKey": "XXX",
+    "gDaxSandboxApiSecret":"XXX",
+    "gDaxSandboxPassphrase": "XXX",
+    "twilioSid": "XXX",
+    "twilioAuthToken": "XXX",
+    "twilioApiKey": "XXX",
+    "twilioApiSecret": "XXX",
+    "newsApiKey": "XXX",
+    "twitterConsumerKey": "XXX",
+    "twitterConsumerSecret": "XXX",
+    "twitterAccessToken": "XXX",
+    "twitterAccessTokenSecret": "XXX"
 }
 ```
+
+## Google Sheets Secrets
+
+Don't forget to share the google sheets with the client_email.
 
 ### config/sheetsClientSecret.json
 
 ```
 {
-"type": "service_account",
-"project_id": "XXXXXXXXXXX",
-"private_key_id": "XXXXXXXXXXX",
-"private_key": "XXXXXXXXXXX",
-"client_email": "XXXXXXXXXXX",
-"client_id": "XXXXXXXXXXX",
-"auth_uri": "https://accounts.google.com/o/oauth2/auth",
-"token_uri": "https://accounts.google.com/o/oauth2/token",
-"auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-"client_x509_cert_url": "XXXXXXXXXXX"
+    "type": "service_account",
+    "project_id": "XXXXXXXXXXX",
+    "private_key_id": "XXXXXXXXXXX",
+    "private_key": "XXXXXXXXXXX",
+    "client_email": "XXXXXXXXXXX",
+    "client_id": "XXXXXXXXXXX",
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://accounts.google.com/o/oauth2/token",
+    "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+    "client_x509_cert_url": "XXXXXXXXXXX"
 }
 ```
