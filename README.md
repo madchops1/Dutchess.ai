@@ -53,7 +53,7 @@ for more information.
 
 ## Data Stores
 
-The Dutchess programs use json file and Google Sheets as their data stores.
+The Dutchess programs use json files stored in `/.tmp` and Google Sheets as their data stores.
 
 ## CRON
 
