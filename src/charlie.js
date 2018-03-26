@@ -34,6 +34,7 @@ const vibeTweets = require(constants.LIB + '/vibeTweets.js');
 
 // Dials
 let coin = ['LTC-USD'];
+let query = 'regime change';
 
 function getOrderBook() {
     return new Promise(function(resolve, reject) {
@@ -86,7 +87,7 @@ async.series(
         },
         function(callback) {
             vibeNews
-                .vibeNews('litecoin')
+                .vibeNews(query)
                 .then(function(data) {
                     console.log(data);
                     callback();
@@ -97,7 +98,7 @@ async.series(
         },
         function(callback) {
             vibeTweets
-                .vibeTweets('litecoin')
+                .vibeTweets(query)
                 .then(function(data) {
                     console.log(data);
                     callback();

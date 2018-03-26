@@ -26,17 +26,18 @@ for more information.
     node princess.js    - Oil Futures momentum predictor
     node tiger.js       - Machine learning bitcoin momentum predictor
     node super-tiger.js - Rotating momentum Bitcoin, Litecoin, and Ether algo trader v1
-    node puss.js        - Momentum algo Litecoin trader v1
-    node nanana.dumb.js - Momentum algo Litecoin trader v2
-    node nanana.js      - Learning momentum algo Litecoin trader v3 AI
+    node puss.js        - Momentum algo trader v1
+    node nanana.dumb.js - Momentum algo trader v2
+    node nanana.js      - Learning momentum algo trader v3 AI
     node nanana.ml.js   - nanana.js machine learning component
-    node randy.js       - RSI breackout aglo Litecoin trader
+    node randy.js       - RSI breackout aglo trader
     node bella.js       - Backtest tick data generator
-    node nala.js        - Volume and Momentum algo Litecoin trader
+    node nala.js        - Volume and Momentum algo trader
     node nala.ml.js     - nala.js machine learning component (In progress)
     node apoorva.js     - Daily 5 day SMA vs. 20 day SMA momentum algo
     node charlie.js     - Order book analysis (In progress)
     node bubbles.js     - Fundamental news (In progress)
+    node merlin.js      - Mean revision algo trader
 
 ## Library
 

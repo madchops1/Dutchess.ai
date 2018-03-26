@@ -29,7 +29,7 @@ let sentiment = 0;
 
 // Dials
 let coin = ['LTC-USD'];
-let count = 20;
+let count = 100;
 
 module.exports.vibeTweets = main;
 
@@ -107,8 +107,12 @@ function main(string) {
                     console.log('Error: ' + err);
                     reject(err);
                 }
+                let score = 0;
+                if (count > 0) {
+                    score = sentiment / count;
+                }
                 let response = {
-                    sentiment: sentiment / count,
+                    sentiment: score,
                     positiveMatches: positiveMatches,
                     negativeMatches: negativeMatches,
                     totalTweets: count

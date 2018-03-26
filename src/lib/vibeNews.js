@@ -92,8 +92,13 @@ function main(string) {
                     console.log('Error: ' + err);
                     reject(err);
                 }
+                console.log(sentiment, totalArticles);
+                let score = 0;
+                if (totalArticles > 0) {
+                    score = sentiment / totalArticles;
+                }
                 let response = {
-                    sentiment: sentiment / totalArticles,
+                    sentiment: score,
                     positiveMatches: positiveMatches,
                     negativeMatches: negativeMatches,
                     totalArticles: totalArticles
