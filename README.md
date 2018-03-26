@@ -12,9 +12,11 @@ You need to set up your AWS security credentials before the sample code is able
 to connect to AWS. You can do this by creating a file named "credentials" at ~/.aws/
 (C:\Users\USER_NAME\.aws\ for Windows users) and saving the following lines in the file:
 
+    ```
     [default]
     aws_access_key_id = <your access key id>
     aws_secret_access_key = <your secret key>
+    ```
 
 See the [Security Credentials](http://aws.amazon.com/security-credentials) page.
 It's also possible to configure your credentials via a configuration file or
@@ -23,12 +25,12 @@ for more information.
 
 ## Running the black boxes
 
-    node princess.js    - Oil Futures momentum predictor
+    node princess.js    - Machine learning Oil Futures momentum predictor
     node tiger.js       - Machine learning bitcoin momentum predictor
     node super-tiger.js - Rotating momentum Bitcoin, Litecoin, and Ether algo trader v1
     node puss.js        - Momentum algo trader v1
     node nanana.dumb.js - Momentum algo trader v2
-    node nanana.js      - Learning momentum algo trader v3 AI
+    node nanana.js      - AI (self-teaching) momentum algo trader v3
     node nanana.ml.js   - nanana.js machine learning component
     node randy.js       - RSI breackout aglo trader
     node bella.js       - Backtest tick data generator
@@ -51,7 +53,19 @@ for more information.
 
 ## Data Stores
 
-    The Dutchess programs use json file and Google Sheets as their data stores.
+The Dutchess programs use json file and Google Sheets as their data stores.
+
+## CRON
+
+Server cron is usually UTC so these times account for the offset. You may need to adjust your cronjobs depending on your location.
+
+```
+0 0 * * 1-5 /home/ec2-user/Dutchess.ai/src/cron/princess.sh
+0 5 * * * /home/ec2-user/Dutchess.ai/src/cron/tiger.sh
+0 15 * * 1-5 /home/ec2-user/Dutchess.ai/src/cron/randy.sh
+0 7 * * * /home/ec2-user/Dutchess.ai/src/cron/apoorva.sh
+#*/5 * * * * /home/ec2-user/Dutchess.ai/src/cron/crontest.sh
+```
 
 ## AWS Resources
 
@@ -77,6 +91,7 @@ Config the secrets files accordingly.
 
 ### config/secrets.json
 
+```
 {
 "GoogleSheetId": "XXX",
 "BucketName": "XXX",
@@ -104,11 +119,18 @@ Config the secrets files accordingly.
 "twilioSid": "XXX",
 "twilioAuthToken": "XXX",
 "twilioApiKey": "XXX",
-"twilioApiSecret": "XXX"
+"twilioApiSecret": "XXX",
+"newsApiKey": "XXX",
+"twitterConsumerKey": "XXX",
+"twitterConsumerSecret": "XXX",
+"twitterAccessToken": "XXX",
+"twitterAccessTokenSecret": "XXX"
 }
+```
 
 ### config/sheetsClientSecret.json
 
+```
 {
 "type": "service_account",
 "project_id": "XXXXXXXXXXX",
@@ -121,3 +143,4 @@ Config the secrets files accordingly.
 "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
 "client_x509_cert_url": "XXXXXXXXXXX"
 }
+```
