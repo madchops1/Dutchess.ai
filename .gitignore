@@ -2,3 +2,4 @@
 node_modules
 config/*
 deploy-secrets.sh
+.tmp/apoorva/dataStore.json

@@ -12,6 +12,15 @@ DUTCHESS.AI - "Apoorva"
 NOTES:
 close prices are last of the 24 hour day
 run daily at 1am
+
+this program uses a json datastore at .tmp/apoorva/dataStore.json
+this is included in the .gitignore so that local and remote running of this script don't overwrite.
+make sure it exists though... I should build that in @TODO
+
+4/1/2018
+adding a logger sheet
+Logs daily regardless of trade or not.
+
 */
 const constants = require('./lib/_constants.js');
 const secrets = require(constants.CONFIG + '/secrets.json');
@@ -24,6 +33,7 @@ const uuid = require('node-uuid');
 const Gdax = require('gdax');
 const GoogleSpreadsheet = require('google-spreadsheet');
 const trainingSheetId = secrets.ApoorvaTrainingSheetId;
+const loggingSheetId = secrets.ApoorvaLoggingSheetId;
 const async = require('async');
 const fs = require('fs');
 const mL = new AWS.MachineLearning({ region: 'us-east-1' });
@@ -31,7 +41,9 @@ const shell = require('shelljs');
 const apiURI = 'https://api.gdax.com';
 
 let trainingDoc = new GoogleSpreadsheet(trainingSheetId);
+let loggingDoc = new GoogleSpreadsheet(loggingSheetId);
 let trainingSheet;
+let loggingSheet;
 let creds = require(constants.CONFIG + '/sheetsClientSecret.json');
 let machineLearning = false;
 let coin = ['LTC-USD'];
@@ -85,9 +97,27 @@ function returnJsonFileObject(file) {
 function configApis() {
     return new Promise(function(resolve, reject) {
         GdaxClient = authedClient();
-        trainingDoc.useServiceAccountAuth(creds, function(data) {
-            resolve();
-        });
+        async.series(
+            [
+                function(callback) {
+                    trainingDoc.useServiceAccountAuth(creds, function(data) {
+                        callback();
+                    });
+                },
+                function(callback) {
+                    loggingDoc.useServiceAccountAuth(creds, function(data) {
+                        callback();
+                    });
+                }
+            ],
+            function(err) {
+                if (err) {
+                    console.log(err);
+                    reject(err);
+                }
+                resolve();
+            }
+        );
     });
 }
 
@@ -100,6 +130,20 @@ function getTrainingWorksheet() {
             }
             trainingSheet = info.worksheets[0];
             console.log('Got Training Sheet');
+            resolve();
+        });
+    });
+}
+
+function getLoggingWorksheet() {
+    return new Promise(function(resolve, reject) {
+        loggingDoc.getInfo(function(err, info) {
+            if (err) {
+                console.log(err);
+                reject(err);
+            }
+            loggingSheet = info.worksheets[0];
+            console.log('Got Logging Sheet');
             resolve();
         });
     });
@@ -175,6 +219,34 @@ function getTicker() {
     });
 }
 
+function logger() {
+    return new Promise(function(resolve, reject) {
+        // Log
+        let holding = 'false';
+        if (dataStore.holdingData) {
+            holding = 'true';
+        }
+
+        let newLogRow = {
+            date: moment().format('YYYY-MM-DD'),
+            time: moment().format('hh:mm:ss'),
+            fiveDaySma: fiveDayMovingAverage,
+            twentyDaySma: twentyDayMovingAverage,
+            price: ticker.price,
+            tradeAmount: tradeAmountCoin,
+            holding: holding
+        };
+
+        loggingSheet.addRow(newLogRow, function(err) {
+            if (err) {
+                console.log(err);
+                reject();
+            }
+            resolve();
+        });
+    });
+}
+
 function trader() {
     return new Promise(function(resolve, data) {
         //console.log('holdingData', dataStore.holdingData);
@@ -230,8 +302,8 @@ function trader() {
                     let newTrainingRow = {
                         date: dataStore.holdingData.date,
                         time: dataStore.holdingData.time,
-                        fiveDayMovingAverage: dataStore.holdingData.fiveDayMovingAverage,
-                        twentyDayMovingAverage: dataStore.holdingData.twentyDayMovingAverage,
+                        fiveDaySma: dataStore.holdingData.fiveDayMovingAverage,
+                        twentyDaySma: dataStore.holdingData.twentyDayMovingAverage,
                         price: dataStore.holdingData.price,
                         volume: dataStore.holdingData.volume,
                         status: status
@@ -296,6 +368,17 @@ async.series(
                 });
         },
 
+        // config Logging Sheet
+        function(callback) {
+            getLoggingWorksheet()
+                .then(function(data) {
+                    callback();
+                })
+                .catch(function(err) {
+                    console.log(err);
+                });
+        },
+
         // get 5 day MVA
         function(callback) {
             getFiveDayMovingAverage()
@@ -321,6 +404,17 @@ async.series(
         // ticker
         function(callback) {
             getTicker()
+                .then(function(data) {
+                    callback();
+                })
+                .catch(function(err) {
+                    console.log(err);
+                });
+        },
+
+        // logger
+        function(callback) {
+            logger()
                 .then(function(data) {
                     callback();
                 })

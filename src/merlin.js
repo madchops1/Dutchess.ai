@@ -5,10 +5,11 @@
 DUTCHESS.AI - "Merlin"
 Mean Revision Strategy
 
+- runs forever
 - first identify the trading range for today
 - then compute the average price / mean
 - use the last 20 ticks to calculate standard deviation
-- if the pice is below the mean and standard deviation is greater that 0 then buy
+- if the price is below the mean and standard deviation is greater that 0 then buy
 - sell at stoploss or target profit
 */
 
@@ -120,6 +121,7 @@ function getTradingRangeMean() {
             //console.log(data, response);
             stats = response;
             mean = (parseFloat(response.high) + parseFloat(response.low)) / 2;
+            console.log(moment().format('YYYY/MM/DD HH:mm:ss'), "Today's Mean", mean);
             resolve(mean);
         });
     });
@@ -160,7 +162,7 @@ function getStandardDeviation() {
     }
 
     let squaredDifferencesMean = sum / (tickerData.length - 1);
-    //console.log('Standard Deviation', standardDeviation);
+    console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'Standard Deviation', standardDeviation);
     standardDeviation = Math.sqrt(squaredDifferencesMean);
 }
 
@@ -181,7 +183,7 @@ function buy(data) {
             holdingData.high = stats.high;
             holdingData.low = stats.low;
             holdingData.mean = mean;
-            console.log('Buy', holdingData);
+            console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'Buy', holdingData);
             resolve(holdingData);
         });
     });
@@ -196,7 +198,7 @@ function sell(data, status) {
                 reject(err);
             }
 
-            console.log('SELL', price, data);
+            console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'SELL', price, data);
 
             let fee = tradeAmountCoin * price * feeRate;
             totalFees = parseFloat(totalFees) + parseFloat(fee);
@@ -229,7 +231,8 @@ function sell(data, status) {
 function trader(data) {
     return new Promise(function(resolve, reject) {
         // if the price is less than the mean it will probably come up
-        if (data.price < mean && standardDeviation > 0 && !holdingData) {
+        console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'Price', data.price);
+        if (data.price < mean && standardDeviation > 100 && !holdingData) {
             // buy
             buy(data)
                 .then(function(data) {
@@ -263,11 +266,21 @@ function trader(data) {
                 });
         } else if (holdingData) {
             // holding
-            console.log('Holding', profit, totalProfit, profitTarget, stopLoss, standardDeviation, winners, losers);
+            console.log(
+                moment().format('YYYY/MM/DD HH:mm:ss'),
+                'Holding',
+                profit,
+                totalProfit,
+                profitTarget,
+                stopLoss,
+                standardDeviation,
+                winners,
+                losers
+            );
             resolve();
         } else {
             // Not holding yet
-            console.log('Not holding yet');
+            console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'Not holding yet');
             resolve();
         }
     });
@@ -284,7 +297,7 @@ function calculateProfitLoss(data) {
         profitTarget = 0;
         stopLoss = 0;
     }
-    console.log('Calculate Profit Loss', profit, profitTarget, stopLoss);
+    console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'Calculate Profit Loss', profit, profitTarget, stopLoss);
 }
 
 function handleTicks(data) {
@@ -313,6 +326,7 @@ function handleTicks(data) {
                 }
             );
         } else {
+            console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'Getting Ticks', tickerData.length);
             resolve();
         }
     });
@@ -325,7 +339,7 @@ function main(data) {
             function(callback) {
                 getTradingRangeMean()
                     .then(function(data) {
-                        console.log(data);
+                        //console.log(data);
                         callback();
                     })
                     .catch(function(err) {
@@ -341,7 +355,7 @@ function main(data) {
                 callback();
             },
 
-            // trader
+            // handleTicks
             function(callback) {
                 handleTicks(data)
                     .then(function(data) {
