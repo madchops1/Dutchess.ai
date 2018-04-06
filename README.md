@@ -23,14 +23,14 @@ It's also possible to configure your credentials via a configuration file or
 directly in source. See the AWS SDK for Node.js [Developer Guide](http://docs.aws.amazon.com/AWSJavaScriptSDK/guide/node-configuring.html)
 for more information.
 
-## Running the black boxes
+# Running the black boxes
 
-# Indicators
+## Indicators
 
     node princess.js    - Machine learning Oil Futures momentum predictor
     node tiger.js       - Machine learning bitcoin momentum predictor
 
-# Algo Traders w/Fees
+## Algo Traders w/Fees
 
     node super-tiger.js - Rotating momentum Bitcoin, Litecoin, and Ether algo trader v1
     node puss.js        - Momentum algo trader v1
