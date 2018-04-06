@@ -132,6 +132,8 @@ Config the secrets files accordingly.
     "gDaxSandboxApiKey": "XXX",
     "gDaxSandboxApiSecret":"XXX",
     "gDaxSandboxPassphrase": "XXX",
+    "binanceApiKey": "XXX",
+    "binanceApiSecret": "XXX",
     "twilioSid": "XXX",
     "twilioAuthToken": "XXX",
     "twilioApiKey": "XXX",
