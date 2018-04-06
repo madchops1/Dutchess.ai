@@ -25,8 +25,13 @@ for more information.
 
 ## Running the black boxes
 
+# Indicators
+
     node princess.js    - Machine learning Oil Futures momentum predictor
     node tiger.js       - Machine learning bitcoin momentum predictor
+
+# Algo Traders w/Fees
+
     node super-tiger.js - Rotating momentum Bitcoin, Litecoin, and Ether algo trader v1
     node puss.js        - Momentum algo trader v1
     node nanana.dumb.js - Momentum algo trader v2
@@ -39,7 +44,11 @@ for more information.
     node apoorva.js     - Daily 5 day SMA vs. 20 day SMA momentum algo
     node charlie.js     - Order book analysis (In progress)
     node merlin.js      - Mean revision algo trader
+
+## Algo Traders w/o Fees
+
     node chuck.js       - Momentum algo trader, limit orders only, no fees
+    node chuckV2.js     - Momentum algo trader v2, limit orders only, no fees
     node jameson.js     - Limit order BUY-.35/SELL+.30 algo trader, no fees
 
 ## Library
