@@ -73,9 +73,6 @@ let modelId;
 let evaluationId;
 let predictionEndpoint;
 
-//let prediction;
-//let predictionScore;
-
 let dataSchema = JSON.stringify({
     version: '1.0',
     targetFieldName: 'status',

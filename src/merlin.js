@@ -11,6 +11,8 @@ Mean Revision Strategy
 - use the last 20 ticks to calculate standard deviation
 - if the price is below the mean and standard deviation is greater that 0 then buy
 - sell at stoploss or target profit
+
+Logs to .tmp/merlin/...
 */
 
 const constants = require('./lib/_constants.js');

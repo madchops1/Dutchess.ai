@@ -38,8 +38,9 @@ for more information.
     node nala.ml.js     - nala.js machine learning component (In progress)
     node apoorva.js     - Daily 5 day SMA vs. 20 day SMA momentum algo
     node charlie.js     - Order book analysis (In progress)
-    node bubbles.js     - Fundamental news (In progress)
     node merlin.js      - Mean revision algo trader
+    node chuck.js       - Momentum algo trader, limit orders only, no fees
+    node jameson.js     - Limit order BUY-.35/SELL+.30 algo trader, no fees
 
 ## Library
 
