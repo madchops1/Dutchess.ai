@@ -37,12 +37,10 @@ let book = {};
 let orderId = false;
 let orderInProgress = false;
 let gettingOrderBook = false;
-//let feeRate = 0.003;
-//let totalFees = 0;
 
 // Dials
 let coin = ['LTC-USD'];
-let ticks = 960;
+let ticks = 60; //960;
 let tradeAmountCoin = 0.1;
 let risk = 0.01;
 let targetRatio = 1; // x:1 x:risk
@@ -110,23 +108,24 @@ function calculateProfitLoss(data) {
         totalProfit,
         profit,
         profitTarget,
-        stopLoss
+        stopLoss,
+        winners + '/' + losers
     );
 }
 
 function momentumIsUp() {
-    //console.log(
-    //    'Momentum',
-    //    shortMomentumAvgs[shortMomentumAvgs.length - 1] - longMomentumAvgs[longMomentumAvgs.length - 1]
-    //);
     if (shortMomentumAvgs[shortMomentumAvgs.length - 1] > longMomentumAvgs[longMomentumAvgs.length - 1]) {
-        console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'Momentum is up');
-        return true;
-    } else {
-        return false;
+        if (tickerData[tickerData.length - 1] < shortMomentumAvgs[shortMomentumAvgs.length - 1]) {
+            console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'momentumIsUp()', true);
+            return true;
+        }
     }
+
+    console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'momentumIsUp()', false);
+    return false;
 }
 
+/*
 function momentumIsDown() {
     //console.log(
     //    'Momentum',
@@ -139,6 +138,7 @@ function momentumIsDown() {
         return false;
     }
 }
+*/
 
 function calculateMomentum() {
     console.log('Calculate Momentum');
@@ -180,7 +180,7 @@ function getArrayAvg(elmt) {
 
 function buy(prices) {
     return new Promise(function(resolve, reject) {
-        if (orderInProgress) {
+        if (orderInProgress || !book.asks[0][0]) {
             resolve();
             return;
         }
@@ -262,6 +262,7 @@ function sell(prices, status) {
 
 function fillStatus() {
     return new Promise(function(resolve, reject) {
+        console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'fillStatus()', buyData, sellData);
         if (!sellData && !buyData) {
             resolve();
             return;
@@ -303,12 +304,13 @@ function fillStatus() {
                         if (err) {
                             console.log(err);
                         }
+                        sellData = false;
+                        buyData = false;
+                        resolve();
                     });
-                    sellData = false;
-                    buyData = false;
+                } else {
+                    resolve();
                 }
-
-                resolve();
             });
         }
     });
@@ -317,30 +319,30 @@ function fillStatus() {
 function trader(data) {
     return new Promise(function(resolve, reject) {
         // if the price is less than the mean it will probably come up
-        //console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'Price', data.price);
+        console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'trader()', 'Price', data.price, buyData, sellData);
 
         if (momentumIsUp() && !buyData && !sellData) {
             buy(data).then(function(data) {
                 resolve();
             });
-        } else if (momentumIsDown() && profit >= 0.02 && buyData.orderStatus == 'done' && !sellData) {
+        } else if (profit >= profitTarget && buyData.orderStatus == 'done' && !sellData) {
             // sell for profit
             sell(data, 1).then(function(data) {
                 resolve();
             });
-        } else if (momentumIsDown() && profit < stopLoss && buyData.orderStatus == 'done' && !sellData) {
+        } else if (profit < stopLoss && buyData.orderStatus == 'done' && !sellData) {
             // sell at a loss
             sell(data, 0).then(function(data) {
                 resolve();
             });
-        } else if (sellData && buyData) {
-            console.log('Selling', buyData, sellData);
-        } else if (buyData.orderStatus != 'done' && buyData && !sellData) {
-            console.log('Buying', buyData);
-        } else if (buyData.orderStatus == 'done' && !sellData) {
-            console.log('Holding', buyData);
+        } else if (buyData && buyData.orderStatus != 'done' && !sellData) {
+            console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'Buying', buyData);
+        } else if (buyData && buyData.orderStatus == 'done' && !sellData) {
+            console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'Holding', buyData);
+        } else if (buyData && buyData.orderStatus == 'done' && sellData) {
+            console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'Selling', buyData, sellData);
         } else {
-            console.log('No Holding', buyData, sellData);
+            console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'No Holding', buyData, sellData);
         }
     });
 }
