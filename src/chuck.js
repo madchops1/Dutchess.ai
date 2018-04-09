@@ -37,10 +37,11 @@ let book = {};
 let orderId = false;
 let orderInProgress = false;
 let gettingOrderBook = false;
+let loggingInProgress = false;
 
 // Dials
 let coin = ['LTC-USD'];
-let ticks = 60; //960;
+let ticks = 960; //960;
 let tradeAmountCoin = 0.1;
 let risk = 0.01;
 let targetRatio = 1; // x:1 x:risk
@@ -272,6 +273,7 @@ function fillStatus() {
                 if (err) {
                     console.log(err);
                     reject(err);
+                    return;
                 }
 
                 console.log('BETA', response);
@@ -286,10 +288,12 @@ function fillStatus() {
                 if (err) {
                     console.log(err);
                     reject(err);
+                    return;
                 }
 
                 console.log('CHARLIE', response);
-                if (response && response.status == 'done') {
+                if (response && response.status == 'done' && !loggingInProgress) {
+                    loggingInProgress = true;
                     //sellData.orderStatus == 'done';
                     totalProfit = totalProfit + profit;
                     let newLoggingRow = {
@@ -306,6 +310,7 @@ function fillStatus() {
                         }
                         sellData = false;
                         buyData = false;
+                        loggingInProgress = false;
                         resolve();
                     });
                 } else {
