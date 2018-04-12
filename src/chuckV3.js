@@ -22,7 +22,14 @@ const loggingSheetId = secrets.ChuckLoggingSheetId;
 let loggingDoc = new GoogleSpreadsheet(loggingSheetId);
 let loggingSheet;
 let creds = require(constants.CONFIG + '/sheetsClientSecret.json');
-let tickerData = [];
+
+let longTickerData = [];
+let shortTickerData = [];
+
+//let longTickerRangeMean = 0;
+let longTickerRangeHigh = 0;
+//let longTickerRangeLow = 0;
+
 let buyData = false;
 let sellData = false;
 let profit = 0;
@@ -31,8 +38,11 @@ let stopLoss = 0;
 let totalProfit = 0;
 let winners = 0;
 let losers = 0;
-let longMomentumAvgs = [];
-let shortMomentumAvgs = [];
+
+let longTickerRangeMeans = [];
+let shortTickerRangeMeans = [];
+let recentTickerMeans = [];
+
 let book = {};
 let orderId = false;
 let orderInProgress = false;
@@ -40,8 +50,10 @@ let gettingOrderBook = false;
 let loggingInProgress = false;
 
 // Dials
+let shortTicks = 3;
+let longTicks = 10; //960;
+
 let coin = ['LTC-USD'];
-let ticks = 3; //960;
 let tradeAmountCoin = 0.2;
 let risk = 0.00175;
 let targetRatio = 1; // x:1 x:risk
@@ -78,9 +90,13 @@ function getLoggingWorksheet() {
 function pushTickerData(data) {
     if (data && typeof data.price != 'undefined') {
         //console.log('Push Ticker Data', count, data.price);
-        tickerData.push(data.price);
-        if (tickerData.length > ticks) {
-            tickerData.shift();
+        longTickerData.push(data.price);
+        shortTickerData.push(data.price);
+        if (longTickerData.length > longTicks) {
+            longTickerData.shift();
+        }
+        if (shortTickerData.length > shortTicks) {
+            shortTickerData.shift();
         }
     }
 }
@@ -110,21 +126,30 @@ function calculateProfitLoss(data) {
         profit,
         profitTarget,
         stopLoss,
-        winners + '/' + losers
+        winners + '/' + parseInt(winners + losers)
     );
 }
 
-function momentumIsUp() {
-    if (shortMomentumAvgs[shortMomentumAvgs.length - 1] > longMomentumAvgs[longMomentumAvgs.length - 1]) {
-        console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'momentumIsUp()', true);
+function longMomentumIsUp() {
+    if (recentTickerMeans[recentTickerMeans.length - 1] > longTickerRangeMeans[longTickerRangeMeans.length - 1]) {
+        console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'longMomentumIsUp()', true);
         return true;
     }
-    console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'momentumIsUp()', false);
+    console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'longMomentumIsUp()', false);
+    return false;
+}
+
+function shortMomentumIsUp() {
+    if (recentTickerMeans[recentTickerMeans.length - 1] > shortTickerRangeMeans[shortTickerRangeMeans.length - 1]) {
+        console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'shortMomentumIsUp()', true);
+        return true;
+    }
+    console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'shortMomentumIsUp()', false);
     return false;
 }
 
 function goodTimeToBuy() {
-    if (tickerData[tickerData.length - 1] < shortMomentumAvgs[shortMomentumAvgs.length - 1]) {
+    if (longTickerData[longTickerData.length - 1] < recentTickerMeans[recentTickerMeans.length - 1]) {
         console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'goodTimeToBuy()', true);
         return true;
     }
@@ -133,7 +158,7 @@ function goodTimeToBuy() {
 }
 
 function goodTimeToSell() {
-    if (tickerData[tickerData.length - 1] > shortMomentumAvgs[shortMomentumAvgs.length - 1]) {
+    if (longTickerData[longTickerData.length - 1] > recentTickerMeans[recentTickerMeans.length - 1]) {
         console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'goodTimeToSell()', true);
         return true;
     }
@@ -156,12 +181,20 @@ function momentumIsDown() {
 }
 */
 
-function calculateMomentum() {
+function calculations() {
     console.log('Calculate Momentum');
-    let longMomentumAvg = getArrayAvg(tickerData);
-    let shortMomentumAvg = getArrayAvg([tickerData[tickerData.length - 1], tickerData[tickerData.length - 2]]);
-    longMomentumAvgs.push(longMomentumAvg);
-    shortMomentumAvgs.push(shortMomentumAvg);
+    let longTickerRangeMean = getArrayAvg(longTickerData);
+    let shortTickerRangeMean = getArrayAvg(shortTickerData);
+    let recentTickerMean = getArrayAvg([
+        longTickerData[longTickerData.length - 1],
+        longTickerData[longTickerData.length - 2]
+    ]);
+
+    longTickerRangeMeans.push(longTickerRangeMean);
+    shortTickerRangeMeans.push(shortTickerRangeMean);
+    recentTickerMeans.push(recentTickerMean);
+
+    longTickerRangeHigh = Math.max.apply(Math, longTickerData);
 }
 
 function getOrderBook() {
@@ -291,9 +324,26 @@ function fillStatus() {
                 console.log('BETA', response);
                 if (response && response.status == 'done') {
                     buyData.orderStatus = 'done';
+                } else if (response) {
+                    // cancel buy
+                    let orderTime = moment(response.date + ' ' + response.time, 'MM/DD/YYYY H:mm A');
+                    let orderDiff = orderTime.diff(moment(), 'minutes');
+                    if (orderDiff > 5) {
+                        authedClient.cancelOrder(buyData.orderId, function(err, response) {
+                            if (err) {
+                                console.log(err);
+                                reject(err);
+                                return;
+                            }
+                            buyData = false;
+                            resolve();
+                        });
+                    } else {
+                        resolve();
+                    }
+                } else {
+                    resolve();
                 }
-
-                resolve();
             });
         } else if (buyData && sellData) {
             GdaxClient.getOrder(sellData.orderId, function(err, data, response) {
@@ -319,8 +369,8 @@ function fillStatus() {
                         buyPrice: buyData.price,
                         sellPrice: sellData.price,
                         amount: tradeAmountCoin,
-                        ticks: ticks,
-                        version: 'v1',
+                        ticks: longTicks,
+                        version: 'v3',
                         profit: profit
                     };
                     loggingSheet.addRow(newLoggingRow, function(err) {
@@ -331,7 +381,25 @@ function fillStatus() {
                         buyData = false;
                         loggingInProgress = false;
                         resolve();
+                        return;
                     });
+                } else if (response) {
+                    // cancel sell
+                    let orderTime = moment(response.date + ' ' + response.time, 'MM/DD/YYYY H:mm A');
+                    let orderDiff = orderTime.diff(moment(), 'minutes');
+                    if (orderDiff > 5) {
+                        authedClient.cancelOrder(sellData.orderId, function(err, response) {
+                            if (err) {
+                                console.log(err);
+                                reject(err);
+                                return;
+                            }
+                            sellData = false;
+                            resolve();
+                        });
+                    } else {
+                        resolve();
+                    }
                 } else {
                     resolve();
                 }
@@ -343,7 +411,14 @@ function fillStatus() {
 function trader(data) {
     return new Promise(function(resolve, reject) {
         console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'trader()', 'Price', data.price, buyData, sellData);
-        if (!buyData && !sellData && momentumIsUp() && goodTimeToBuy()) {
+        if (
+            !buyData &&
+            !sellData &&
+            longMomentumIsUp() &&
+            !shortMomentumIsUp() &&
+            goodTimeToBuy() &&
+            data.price < longTickerRangeHigh
+        ) {
             buy(data).then(function(data) {
                 resolve();
             });
@@ -371,7 +446,7 @@ function trader(data) {
 
 function handleTicks(data) {
     return new Promise(function(resolve, reject) {
-        if (tickerData.length > ticks - 1) {
+        if (longTickerData.length > longTicks - 1) {
             async.series(
                 [
                     // get best bid/ask
@@ -390,7 +465,7 @@ function handleTicks(data) {
 
                     // trade
                     function(callback) {
-                        calculateMomentum();
+                        calculations();
                         calculateProfitLoss(data);
                         trader(data)
                             .then(function(data) {
@@ -410,7 +485,7 @@ function handleTicks(data) {
                 }
             );
         } else {
-            console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'Getting Ticks', tickerData.length);
+            console.log(moment().format('YYYY/MM/DD HH:mm:ss'), 'Getting Ticks', longTickerData.length);
             resolve();
         }
     });
